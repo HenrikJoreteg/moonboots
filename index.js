@@ -4,102 +4,121 @@ var fs = require('fs'),
     _ = require('underscore'),
     async = require('async'),
     rmrf = require('rimraf'),
+    ecstatic = require('ecstatic'),
+    watch = require('watch'),
     UglifyJS = require('uglify-js');
 
 
-module.exports = function (app, opts) {
-    if (!app) {
-        throw Error('You have to pass in an app');
+function NoduleApp(opts, cb) {
+    var self = this;
+
+    if (!opts.dir) {
+        throw new Error("You must supply at minimum a directory name where your app lives: {dir: 'myApp'}");
+    }
+    this.config = _.defaults(opts || {}, {
+        fileName: 'app',
+        dependencies: [],
+        clientModules: [opts.dir + '/modules', opts.dir + '/app'],
+        dependencyFolder: opts.dir + '/public',
+        minify: true,
+        dev: false,
+        templateFile: opts.dir + '/app.html',
+        buildDir: opts.dir + '/.build'
+    });
+
+    opts.server.use(ecstatic({
+        root: this.config.buildDir,
+        cache: 86400 * 360 // ~1 year
+    }));
+
+    // our stitch package
+    this.stitchPackage = stitch.createPackage({
+        paths: this.config.clientModules,
+        dependencies: this.config.dependencies
+    });
+
+    this._prepareFiles();
+
+    if (this.config.dev) {
+        opts.server.get('/' + this.config.fileName + '.js', this.stitchPackage.createServer());
+        /*
+        watch.watchTree(opts.dir ,function (filename) {
+            if (typeof filename === 'string' && filename.indexOf(self.config.buildDir) === -1) {
+                self._prepareFiles();
+            }
+        });
+        */
+    }
+}
+
+NoduleApp.prototype._prepareFiles = function (mainCb) {
+    if (mainCb && this.source) {
+        return mainCb();
     }
 
-    // base directory based on app entry point
-    var baseDir = require.main.dirname,
-        // config object for all our settings
-        config = _.defaults(opts || {}, {
-            fileName: 'app',
-            dependencies: [],
-            clientModules: ['clientmodules', 'clientapp'],
-            dependencyFolder: baseDir + '/public',
-            writeFile: true,
-            minify: true,
-            dev: false,
-            templateFile: 'index.html',
-            buildDir: '_build'
-        }),
+    var self = this,
         shasum = crypto.createHash('sha1'),
-        // our stitch package
-        stitchPackage = stitch.createPackage({
-            paths: config.clientModules,
-            dependencies: config.dependencies
-        }),
-        // file name of minified file
-        minFileName,
-        // file name of non-minified JS file
-        fileName,
-        // holder for our compiled source
-        source,
-        minifiedSource,
         // we'll calculate this to know whether to change the filename
-        checkSum,
-        template,
-        cacheHeaders = {
-            'Content-Type': 'text/javascript',
-            'Cache-Control': 'max-age=' + 86400 * 360 + ', public' // ~1 year
-        };
+        checkSum;
 
     async.series([
         function (cb) {
-            rmrf(config.buildDir, function () {
+            rmrf(self.config.buildDir, function () {
                 cb();
             });
         },
-        async.apply(fs.mkdir, config.buildDir),
+        async.apply(fs.mkdir, self.config.buildDir),
         function (cb) {
-            stitchPackage.compile(function (err, js) {
-                source = js;
-                cb();
-            });
-        },
-        function (cb) {
-            fs.readFile(config.templateFile, function (err, buffer) {
-                template = buffer.toString();
+            self.stitchPackage.compile(function (err, js) {
+                if (err) throw err;
+                self.source = js;
                 cb();
             });
         },
         function (cb) {
             // create our hash and build filenames accordingly
-            shasum.update(source);
+            shasum.update(self.source);
             checkSum = shasum.digest('hex').slice(0, 5);
-            config.fileName += '.' + checkSum;
-            fileName = config.fileName + '.js'
-            minFileName = config.fileName + '.min.js'
+            self._fileName = self.config.fileName + '.' + checkSum + '.js';
+            self._minFileName = self.config.fileName + '.' + checkSum + '.min.js';
             cb();
         },
         function (cb) {
-            fs.writeFile(config.buildDir + '/' + fileName, source, cb);
+            fs.writeFile(self.config.buildDir + '/' + self._fileName, self.source, cb);
         },
         function (cb) {
-            minifiedSource = UglifyJS.minify(config.buildDir + '/' + fileName).code;
-            fs.writeFile(config.buildDir + '/' + minFileName, minifiedSource, cb);
+            self.minifiedSource = UglifyJS.minify(self.config.buildDir + '/' + self._fileName).code;
+            fs.writeFile(self.config.buildDir + '/' + self._minFileName, self.minifiedSource, cb);
+        },
+        function (cb) {
+            fs.readFile(self.config.templateFile, function (err, buffer) {
+                var file = self.config.minify ? self._minFileName : self._fileName;
+                if (self.config.dev) {
+                    file = self.config.fileName + '.js'
+                }
+                self._html = buffer.toString().replace('#{fileName}', '/' + file);
+                cb();
+            });
         }
     ], function () {
-        app.get('/', function (req, res) {
-            var file = config.minify ? minFileName : fileName;
-            res.send(template.replace('#{fileName}', '/' + file), 200);
-        });
-
-        if (config.dev) {
-            app.get('/' + fileName, stitchPackage.createServer());
-        } else {
-            if (config.minify) {
-                app.get('/' + minFileName, function (req, res) {
-                    res.set(cacheHeaders).send(minifiedSource);
-                });
-            } else {
-                app.get('/' + fileName, function (req, res) {
-                    res.set(cacheHeaders).send(source);
-                });
-            }
+        if (self.config.dev) {
+            console.log('Nodule: app files built and written.');
         }
+        mainCb && mainCb();
     });
-}
+};
+
+NoduleApp.prototype.html = function () {
+    var self = this;
+    return function (req, res) {
+        self._prepareFiles(function () {
+            res.set('Content-Type', 'text/html').status(200).send(self._html);
+        });
+    };
+};
+
+NoduleApp.prototype.fileName = function () {
+    return this.config.minify ? this._minFileName : this._fileName;
+};
+
+module.exports = NoduleApp;
