@@ -4,8 +4,11 @@ A set of conventions and tools for building, bundling and serving single page ap
 
 ## What it does
 
-1. Configures your clientside project
-
+1. Saves us, [&yet](http://andyet.com), from re-inventing this process for each app.
+1. Let's a developer focus on building a great clientside experience, not boiler plate.
+1. Let's you use CommonJS modules to structure your clientside code.
+1. Manages clientside files during development so you can just write code.
+1. Compiles/minifies/serves uniquely named JS files containing your application with really aggressive caching (since the name will change if the app does).
 
 ## How-to
 
