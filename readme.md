@@ -19,7 +19,7 @@ That's it.
 
 ```js
 var express = require('express'),
-    NoduleApp = require('./index.js'),
+    NoduleApp = require('nodule'),
     app = express();
 
 // configure our app
@@ -41,6 +41,10 @@ app.get('*', clientApp.html());
 app.listen(3000);
 
 ```
+
+## Full example
+
+For a working example, see the `server.js` file and `sample` directory.
 
 ## License
 
