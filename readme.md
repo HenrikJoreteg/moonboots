@@ -9,8 +9,13 @@ A set of conventions and tools for building, bundling and serving single page ap
 1. Let's you use CommonJS modules to structure your clientside code.
 1. Manages clientside files during development so you can just write code.
 1. Compiles/minifies/serves uniquely named JS files containing your application with really aggressive caching (since the name will change if the app does).
+1. Plays nicely with [express.js](http://expressjs.com)
 
-## How-to
+## How to use it
+
+You create an instance of your nodule app with your configuration. Then tell express which urls to serve your single page app at. 
+
+That's it.
 
 ```js
 var express = require('express'),
@@ -27,19 +32,8 @@ var clientApp = new NoduleApp({
     server: app
 });
 
-// if we want to prime the user's cache with the
-// application files. The login page is a great place
-// to do this. We can retrieve the name of the
-// JS file for the current app, by calling nodule's
-// filename() function.
-app.get('/login', function (req, res) {
-    // then in our login page we can lazy load the application to
-    // prime the user's cache while they're typing in their username/password
-    res.render('login', {appFileName: clientApp.filename()});
-});
-
-// We also just need to specify the routes at which we want to serve this clientside app.
-// This is important for supporting "deep linking" into a single page app. The server
+// We just specify the routes at which we want to serve this clientside app.
+// This is important for supporting "deep linking" into a singlepage apps since the server
 // has to know what urls to let the browser app handle.
 app.get('*', clientApp.html());
 
