@@ -6,6 +6,7 @@ var fs = require('fs'),
     rmrf = require('rimraf'),
     ecstatic = require('ecstatic'),
     watch = require('watch'),
+    templatizer = require('templatizer'),
     UglifyJS = require('uglify-js');
 
 
@@ -16,6 +17,7 @@ function NoduleApp(opts, cb) {
         throw new Error("You must supply at minimum a directory name where your app lives: {dir: 'myApp'}");
     }
     this.config = _.defaults(opts || {}, {
+        dir: opts.dir,
         fileName: 'app',
         dependencies: [],
         clientModules: [opts.dir + '/modules', opts.dir + '/app'],
@@ -23,7 +25,9 @@ function NoduleApp(opts, cb) {
         minify: true,
         dev: false,
         templateFile: opts.dir + '/app.html',
-        buildDir: opts.dir + '/.build'
+        buildDir: opts.dir + '/.build',
+        templatesDir: opts.dir + '/templates',
+        templatesFile: opts.dir + '/modules/templates.js'
     });
 
     // build out full paths for our libraries
@@ -42,17 +46,14 @@ function NoduleApp(opts, cb) {
         dependencies: libs
     });
 
-    this._prepareFiles();
-
     if (this.config.dev) {
+        this.compileTemplates();
         opts.server.get('/' + this.config.fileName + '.js', this.stitchPackage.createServer());
-        /*
-        watch.watchTree(opts.dir ,function (filename) {
-            if (typeof filename === 'string' && filename.indexOf(self.config.buildDir) === -1) {
-                self._prepareFiles();
-            }
+        watch.watchTree(this.config.templatesDir, function (filename) {
+            self.compileTemplates();
         });
-        */
+    } else {
+        this._prepareFiles();
     }
 }
 
@@ -124,6 +125,10 @@ NoduleApp.prototype.html = function () {
 
 NoduleApp.prototype.fileName = function () {
     return this.config.minify ? this._minFileName : this._fileName;
+};
+
+NoduleApp.prototype.compileTemplates = function () {
+    templatizer(this.config.templatesDir, this.config.templatesFile);
 };
 
 module.exports = NoduleApp;

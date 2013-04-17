@@ -5,7 +5,7 @@ var express = require('express'),
 // configure our app
 var clientApp = new NoduleApp({
     dir: __dirname + '/sample',
-    dev: true,
+    dev: false,
     libraries: [
         'jquery.js'
     ],

@@ -8,7 +8,9 @@
         "underscore": "",
         "templatizer": "",
         "rimraf": "",
-        "uglify-js": "2.x.x"
+        "uglify-js": "2.x.x",
+        "ecstatic": "",
+        "watch": ""
     },
     "devDependencies": {
         "express": ">3.0.0"
