@@ -2,16 +2,47 @@
 
 A set of conventions and tools for building, bundling and serving single page apps with node.js
 
+## What it does
+
+1. Configures your clientside project
+
+
 ## How-to
 
 ```js
 var express = require('express'),
-    nodule = require('nodule'),
+    NoduleApp = require('./index.js'),
     app = express();
 
-nodule(app);
+// configure our app
+var clientApp = new NoduleApp({
+    dir: __dirname + '/sample',
+    dev: false,
+    libraries: [
+        'jquery.js'
+    ],
+    server: app
+});
 
+// if we want to prime the user's cache with the
+// application files. The login page is a great place
+// to do this. We can retrieve the name of the
+// JS file for the current app, by calling nodule's
+// filename() function.
+app.get('/login', function (req, res) {
+    // then in our login page we can lazy load the application to
+    // prime the user's cache while they're typing in their username/password
+    res.render('login', {appFileName: clientApp.filename()});
+});
+
+// We also just need to specify the routes at which we want to serve this clientside app.
+// This is important for supporting "deep linking" into a single page app. The server
+// has to know what urls to let the browser app handle.
+app.get('*', clientApp.html());
+
+// start listening for http requests
 app.listen(3000);
+
 ```
 
 ## License

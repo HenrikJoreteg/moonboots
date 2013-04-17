@@ -20,7 +20,7 @@ var clientApp = new NoduleApp({
 app.get('/login', function (req, res) {
     // then in our login page we can lazy load the application to
     // prime the user's cache while they're typing in their username/password
-    //res.render('login', {appFileName: clientApp.filename()});
+    res.render('login', {appFileName: clientApp.filename()});
 });
 
 // We also just need to specify the routes at which we want to serve this clientside app.
