@@ -19,11 +19,16 @@ function NoduleApp(opts, cb) {
         fileName: 'app',
         dependencies: [],
         clientModules: [opts.dir + '/modules', opts.dir + '/app'],
-        dependencyFolder: opts.dir + '/public',
+        dependencyFolder: opts.dir + '/libraries',
         minify: true,
         dev: false,
         templateFile: opts.dir + '/app.html',
         buildDir: opts.dir + '/.build'
+    });
+
+    // build out full paths for our libraries
+    var libs = (this.config.libraries || []).map(function (lib) {
+        return self.config.dependencyFolder + '/' + lib;
     });
 
     opts.server.use(ecstatic({
@@ -34,7 +39,7 @@ function NoduleApp(opts, cb) {
     // our stitch package
     this.stitchPackage = stitch.createPackage({
         paths: this.config.clientModules,
-        dependencies: this.config.dependencies
+        dependencies: libs
     });
 
     this._prepareFiles();
