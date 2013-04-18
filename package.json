@@ -1,12 +1,12 @@
 {
-    "name": "nodule",
+    "name": "rocketapp",
     "description": "A set of tools and conventions for building/serving clientside apps with node.js",
     "version": "0.0.1",
     "dependencies": {
         "stitch": "",
         "async": "",
         "underscore": "",
-        "templatizer": "",
+        "templatizer": ">=0.0.11",
         "rimraf": "",
         "uglify-js": "2.x.x",
         "ecstatic": "",

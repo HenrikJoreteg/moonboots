@@ -1,4 +1,4 @@
-# nodule
+# rocketapp
 
 A set of conventions and tools for building, bundling and serving single page apps with node.js
 
@@ -19,17 +19,17 @@ A set of conventions and tools for building, bundling and serving single page ap
 
 ## How to use it
 
-You create an instance of your nodule app with your configuration. Then tell express which urls to serve your single page app at. 
+You create an instance of your rocket app with your configuration. Then tell express which urls to serve your single page app at. 
 
 That's it.
 
 ```js
 var express = require('express'),
-    NoduleApp = require('nodule'),
+    RocketApp = require('rocketapp'),
     app = express();
 
 // configure our app
-var clientApp = new NoduleApp({
+var clientApp = new RocketApp({
     dir: __dirname + '/sample',
     dev: false,
     libraries: [

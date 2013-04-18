@@ -1,11 +1,11 @@
 var express = require('express'),
-    NoduleApp = require('./index.js'),
+    RocketApp = require('./index.js'),
     app = express();
 
 // configure our app
-var clientApp = new NoduleApp({
+var clientApp = new RocketApp({
     dir: __dirname + '/sample',
-    dev: false,
+    dev: true,
     libraries: [
         'jquery.js'
     ],

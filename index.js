@@ -10,7 +10,7 @@ var fs = require('fs'),
     UglifyJS = require('uglify-js');
 
 
-function NoduleApp(opts, cb) {
+function RocketApp(opts, cb) {
     var self = this;
 
     if (!opts.dir) {
@@ -27,7 +27,8 @@ function NoduleApp(opts, cb) {
         templateFile: opts.dir + '/app.html',
         buildDir: opts.dir + '/.build',
         templatesDir: opts.dir + '/templates',
-        templatesFile: opts.dir + '/modules/templates.js'
+        templatesFile: opts.dir + '/modules/templates.js',
+        serveStaticFiles: true
     });
 
     // build out full paths for our libraries
@@ -35,10 +36,12 @@ function NoduleApp(opts, cb) {
         return self.config.dependencyFolder + '/' + lib;
     });
 
-    opts.server.use(ecstatic({
-        root: this.config.buildDir,
-        cache: 86400 * 360 // ~1 year
-    }));
+    if (this.config.serveStaticFiles) {
+        opts.server.use(ecstatic({
+            root: this.config.buildDir,
+            cache: 86400 * 360 // ~1 year
+        }));
+    }
 
     // our stitch package
     this.stitchPackage = stitch.createPackage({
@@ -57,7 +60,7 @@ function NoduleApp(opts, cb) {
     }
 }
 
-NoduleApp.prototype._prepareFiles = function (mainCb) {
+RocketApp.prototype._prepareFiles = function (mainCb) {
     if (mainCb && this.source) {
         return mainCb();
     }
@@ -98,11 +101,9 @@ NoduleApp.prototype._prepareFiles = function (mainCb) {
         },
         function (cb) {
             fs.readFile(self.config.templateFile, function (err, buffer) {
-                var file = self.config.minify ? self._minFileName : self._fileName;
-                if (self.config.dev) {
-                    file = self.config.fileName + '.js'
-                }
-                self._html = buffer.toString().replace('#{fileName}', '/' + file);
+                // ignore if we can't read template file
+                if (err) return cb();
+                self._html = buffer.toString().replace('#{fileName}', '/' + self.fileName());
                 cb();
             });
         }
@@ -114,7 +115,7 @@ NoduleApp.prototype._prepareFiles = function (mainCb) {
     });
 };
 
-NoduleApp.prototype.html = function () {
+RocketApp.prototype.html = function () {
     var self = this;
     return function (req, res) {
         self._prepareFiles(function () {
@@ -123,12 +124,16 @@ NoduleApp.prototype.html = function () {
     };
 };
 
-NoduleApp.prototype.fileName = function () {
-    return this.config.minify ? this._minFileName : this._fileName;
+RocketApp.prototype.fileName = function () {
+    if (this.config.dev) {
+        return this.config.fileName + '.js';
+    } else {
+        return this.config.minify ? this._minFileName : this._fileName;
+    }
 };
 
-NoduleApp.prototype.compileTemplates = function () {
+RocketApp.prototype.compileTemplates = function () {
     templatizer(this.config.templatesDir, this.config.templatesFile);
 };
 
-module.exports = NoduleApp;
+module.exports = RocketApp;
