@@ -48,6 +48,10 @@ app.listen(3000);
 
 ```
 
+## Plans/progress/caveats
+
+Warning, this is still in the early development.
+
 ## Full example
 
 For a working example, see the `server.js` file and `sample` directory.
