@@ -1,4 +1,4 @@
-# moonboot
+# moonboots
 
 A set of conventions and tools for building, bundling and serving single page apps with node.js and express.js.
 
@@ -19,17 +19,17 @@ A set of conventions and tools for building, bundling and serving single page ap
 
 ## How to use it
 
-You create an instance of your moonboot app with your configuration. Then tell express which urls to serve your single page app at. 
+You grab your moonboots and pass it a config. Then tell express which urls to serve your single page app at. 
 
 That's it.
 
 ```js
 var express = require('express'),
-    Moonboot = require('moonboot'),
+    Moonboots = require('moonboots'),
     app = express();
 
 // configure our app
-var clientApp = new Moonboot({
+var clientApp = new Moonboots({
     dir: __dirname + '/sample',
     dev: false,
     libraries: [

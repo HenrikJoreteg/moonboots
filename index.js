@@ -10,7 +10,7 @@ var fs = require('fs'),
     UglifyJS = require('uglify-js');
 
 
-function Moonboot(opts, cb) {
+function Moonboots(opts, cb) {
     var self = this;
 
     if (!opts.dir) {
@@ -60,7 +60,7 @@ function Moonboot(opts, cb) {
     this._prepareFiles();
 }
 
-Moonboot.prototype._prepareFiles = function (mainCb) {
+Moonboots.prototype._prepareFiles = function (mainCb) {
     if (mainCb && this.source) {
         return mainCb();
     }
@@ -125,16 +125,16 @@ Moonboot.prototype._prepareFiles = function (mainCb) {
     ], function () {
         if (self.config.writeFiles) {
             if (alreadyWritten) {
-                console.log('Moonboot: app files already written.');
+                console.log('Moonboots: app files already written.');
             } else {
-                console.log('Moonboot: app files built and written.');
+                console.log('Moonboots: app files built and written.');
             }
         }
         mainCb && mainCb();
     });
 };
 
-Moonboot.prototype.html = function () {
+Moonboots.prototype.html = function () {
     var self = this;
     return function (req, res) {
         self._prepareFiles(function () {
@@ -143,7 +143,7 @@ Moonboot.prototype.html = function () {
     };
 };
 
-Moonboot.prototype.fileName = function () {
+Moonboots.prototype.fileName = function () {
     if (this.config.developmentMode) {
         return this.config.fileName + '.js';
     } else {
@@ -151,8 +151,8 @@ Moonboot.prototype.fileName = function () {
     }
 };
 
-Moonboot.prototype.compileTemplates = function () {
+Moonboots.prototype.compileTemplates = function () {
     templatizer(this.config.templatesDir, this.config.templatesFile);
 };
 
-module.exports = Moonboot;
+module.exports = Moonboots;

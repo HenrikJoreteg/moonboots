@@ -1,9 +1,9 @@
 var express = require('express'),
-    Moonboot = require('./index.js'),
+    Moonboots = require('./index.js'),
     app = express();
 
 // configure our app
-var clientApp = new Moonboot({
+var clientApp = new Moonboots({
     dir: __dirname + '/sample',
     dev: true,
     libraries: [
