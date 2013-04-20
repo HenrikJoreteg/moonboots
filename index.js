@@ -10,7 +10,7 @@ var fs = require('fs'),
     UglifyJS = require('uglify-js');
 
 
-function Rocket(opts, cb) {
+function Moonboot(opts, cb) {
     var self = this;
 
     if (!opts.dir) {
@@ -19,11 +19,11 @@ function Rocket(opts, cb) {
     this.config = _.defaults(opts || {}, {
         dir: opts.dir,
         fileName: 'app',
-        dependencies: [],
         clientModules: [opts.dir + '/modules', opts.dir + '/app'],
         dependencyFolder: opts.dir + '/libraries',
+        writeFiles: true,
         minify: true,
-        dev: false,
+        developmentMode: false,
         templateFile: opts.dir + '/app.html',
         buildDir: opts.dir + '/.build',
         templatesDir: opts.dir + '/templates',
@@ -49,34 +49,29 @@ function Rocket(opts, cb) {
         dependencies: libs
     });
 
-    if (this.config.dev) {
+    if (this.config.developmentMode) {
         this.compileTemplates();
         opts.server.get('/' + this.config.fileName + '.js', this.stitchPackage.createServer());
         watch.watchTree(this.config.templatesDir, function (filename) {
             self.compileTemplates();
         });
-    } else {
-        this._prepareFiles();
     }
+
+    this._prepareFiles();
 }
 
-RocketApp.prototype._prepareFiles = function (mainCb) {
+Moonboot.prototype._prepareFiles = function (mainCb) {
     if (mainCb && this.source) {
         return mainCb();
     }
 
     var self = this,
+        alreadyWritten = false,
         shasum = crypto.createHash('sha1'),
         // we'll calculate this to know whether to change the filename
         checkSum;
 
     async.series([
-        function (cb) {
-            rmrf(self.config.buildDir, function () {
-                cb();
-            });
-        },
-        async.apply(fs.mkdir, self.config.buildDir),
         function (cb) {
             self.stitchPackage.compile(function (err, js) {
                 if (err) throw err;
@@ -87,35 +82,59 @@ RocketApp.prototype._prepareFiles = function (mainCb) {
         function (cb) {
             // create our hash and build filenames accordingly
             shasum.update(self.source);
-            checkSum = shasum.digest('hex').slice(0, 5);
+            checkSum = shasum.digest('hex').slice(0, 8);
             self._fileName = self.config.fileName + '.' + checkSum + '.js';
             self._minFileName = self.config.fileName + '.' + checkSum + '.min.js';
             cb();
-        },
-        function (cb) {
-            fs.writeFile(self.config.buildDir + '/' + self._fileName, self.source, cb);
-        },
-        function (cb) {
-            self.minifiedSource = UglifyJS.minify(self.config.buildDir + '/' + self._fileName).code;
-            fs.writeFile(self.config.buildDir + '/' + self._minFileName, self.minifiedSource, cb);
         },
         function (cb) {
             fs.readFile(self.config.templateFile, function (err, buffer) {
                 // ignore if we can't read template file
                 if (err) return cb();
                 self._html = buffer.toString().replace('#{fileName}', '/' + self.fileName());
+
+                if (fs.existsSync(self.config.buildDir + '/' + self._fileName)) {
+                    if (self.config.minify) {
+                        alreadyWritten = fs.existsSync(self.config.buildDir + '/' + self._minFileName);
+                    } else {
+                        alreadyWritten = true
+                    }
+                }
+
+                // if we're not building just fake an error so we skip to the final callbackat this point
+                if (!self.config.writeFiles || alreadyWritten) {
+                    cb('stophere');
+                } else {
+                    cb();
+                }
+            });
+        },
+        function (cb) {
+            rmrf(self.config.buildDir, function () {
                 cb();
             });
+        },
+        async.apply(fs.mkdir, self.config.buildDir),
+        function (cb) {
+            fs.writeFile(self.config.buildDir + '/' + self._fileName, self.source, cb);
+        },
+        function (cb) {
+            self.minifiedSource = UglifyJS.minify(self.config.buildDir + '/' + self._fileName).code;
+            fs.writeFile(self.config.buildDir + '/' + self._minFileName, self.minifiedSource, cb);
         }
     ], function () {
-        if (self.config.dev) {
-            console.log('Nodule: app files built and written.');
+        if (self.config.writeFiles) {
+            if (alreadyWritten) {
+                console.log('Moonboot: app files already written.');
+            } else {
+                console.log('Moonboot: app files built and written.');
+            }
         }
         mainCb && mainCb();
     });
 };
 
-RocketApp.prototype.html = function () {
+Moonboot.prototype.html = function () {
     var self = this;
     return function (req, res) {
         self._prepareFiles(function () {
@@ -124,16 +143,16 @@ RocketApp.prototype.html = function () {
     };
 };
 
-RocketApp.prototype.fileName = function () {
-    if (this.config.dev) {
+Moonboot.prototype.fileName = function () {
+    if (this.config.developmentMode) {
         return this.config.fileName + '.js';
     } else {
         return this.config.minify ? this._minFileName : this._fileName;
     }
 };
 
-RocketApp.prototype.compileTemplates = function () {
+Moonboot.prototype.compileTemplates = function () {
     templatizer(this.config.templatesDir, this.config.templatesFile);
 };
 
-module.exports = RocketApp;
+module.exports = Moonboot;
