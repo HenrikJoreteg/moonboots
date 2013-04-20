@@ -10,7 +10,7 @@ var fs = require('fs'),
     UglifyJS = require('uglify-js');
 
 
-function RocketApp(opts, cb) {
+function Rocket(opts, cb) {
     var self = this;
 
     if (!opts.dir) {

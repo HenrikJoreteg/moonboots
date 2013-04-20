@@ -1,9 +1,9 @@
 var express = require('express'),
-    RocketApp = require('./index.js'),
+    Moonboot = require('./index.js'),
     app = express();
 
 // configure our app
-var clientApp = new RocketApp({
+var clientApp = new Moonboot({
     dir: __dirname + '/sample',
     dev: true,
     libraries: [
