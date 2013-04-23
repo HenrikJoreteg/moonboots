@@ -138,7 +138,7 @@ Moonboots.prototype.html = function () {
     var self = this;
     return function (req, res) {
         self._prepareFiles(function () {
-            res.set('Content-Type', 'text/html').status(200).send(self._html);
+            res.set('Content-Type', 'text/html; charset=utf-8').status(200).send(self._html);
         });
     };
 };
