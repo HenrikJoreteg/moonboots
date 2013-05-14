@@ -1,7 +1,7 @@
 {
     "name": "moonboots",
     "description": "A set of tools and conventions for building/serving clientside apps with node.js",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "dependencies": {
         "stitch": "",
         "async": "",

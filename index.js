@@ -24,7 +24,7 @@ function Moonboots(opts, cb) {
         writeFiles: true,
         minify: true,
         developmentMode: false,
-        templateFile: opts.dir + '/app.html',
+        templateFile: __dirname + '/sample/app.html',
         buildDir: opts.dir + '/.build',
         templatesDir: opts.dir + '/templates',
         templatesFile: opts.dir + '/modules/templates.js',
