@@ -25,36 +25,44 @@ That's it.
 
 ```js
 var express = require('express'),
-    Moonboots = require('moonboots'),
+    Moonboots = require('./index.js'),
     app = express();
 
 // configure our app
 var clientApp = new Moonboots({
     dir: __dirname + '/sample',
-    dev: false,
+    developmentMode: false,
     libraries: [
         'jquery.js'
     ],
     server: app
 });
 
-// We just specify the routes at which we want to serve this clientside app.
-// This is important for supporting "deep linking" into a singlepage apps since the server
+// if we want to prime the user's cache with the
+// application files. The login page is a great place
+// to do this. We can retrieve the name of the
+// JS file for the current app, by calling nodule's
+// filename() function.
+app.get('/login', function (req, res) {
+    // then in our login page we can lazy load the application to
+    // prime the user's cache while they're typing in their username/password
+    res.render('login', {appFileName: clientApp.filename()});
+});
+
+// We also just need to specify the routes at which we want to serve this clientside app.
+// This is important for supporting "deep linking" into a single page app. The server
 // has to know what urls to let the browser app handle.
 app.get('*', clientApp.html());
 
 // start listening for http requests
 app.listen(3000);
 
+
 ```
-
-## Plans/progress/caveats
-
-Warning, this is still in the early development.
 
 ## Full example
 
-For a working example, see the `server.js` file and `sample` directory.
+For a working example, run `node server.js` file and it'll server the `sample` directory.
 
 ## License
 

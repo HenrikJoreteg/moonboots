@@ -6,11 +6,7 @@
         "stitch": "0.3.3",
         "async": "0.2.9",
         "underscore": "1.4.4",
-        "templatizer": "0.0.12",
-        "rimraf": "2.1.4",
-        "uglify-js": "2.3.6",
-        "ecstatic": "0.4.2",
-        "watch": "0.7.0"
+        "uglify-js": "2.3.6"
     },
     "devDependencies": {
         "express": "3.2.6"

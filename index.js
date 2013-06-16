@@ -1,47 +1,58 @@
 var fs = require('fs'),
     crypto = require('crypto'),
     stitch = require('stitch'),
-    _ = require('underscore'),
     async = require('async'),
-    rmrf = require('rimraf'),
-    ecstatic = require('ecstatic'),
-    watch = require('watch'),
-    templatizer = require('templatizer'),
+    EventEmitter = require('events').EventEmitter,
     UglifyJS = require('uglify-js');
 
 
 function Moonboots(opts, cb) {
-    var self = this;
+    var self = this,
+        shasum = crypto.createHash('sha1'),
+        // we'll calculate this to know whether to change the filename
+        libs,
+        item;
+
+    // inherit
+    EventEmitter.call(this);
 
     if (!opts.dir) {
         throw new Error("You must supply at minimum a directory name where your app lives: {dir: 'myApp'}");
     }
-    this.config = _.defaults(opts || {}, {
+
+    this.config = {
         dir: opts.dir,
         fileName: 'app',
         clientModules: [opts.dir + '/modules', opts.dir + '/app'],
         dependencyFolder: opts.dir + '/libraries',
-        writeFiles: true,
         minify: true,
         developmentMode: false,
         templateFile: __dirname + '/sample/app.html',
-        buildDir: opts.dir + '/.build',
-        templatesDir: opts.dir + '/templates',
-        templatesFile: opts.dir + '/modules/templates.js',
-        serveStaticFiles: true
-    });
+        server: '',
+        cachePeriod: 86400000 * 360 // one year
+    };
+
+    // Were we'll store generated
+    // source code, etc.
+    this.result = {
+        source: '',
+        minSource: '',
+        html: '',
+        fileName: '',
+        minFileName: '',
+        checkSum: ''
+    };
+
+    if (typeof opts === 'object') {
+        for (item in opts) {
+            this.config[item] = opts[item];
+        }
+    }
 
     // build out full paths for our libraries
-    var libs = (this.config.libraries || []).map(function (lib) {
+    libs = (this.config.libraries || []).map(function (lib) {
         return self.config.dependencyFolder + '/' + lib;
     });
-
-    if (this.config.serveStaticFiles) {
-        opts.server.use(ecstatic({
-            root: this.config.buildDir,
-            cache: 86400 * 360 // ~1 year
-        }));
-    }
 
     // our stitch package
     this.stitchPackage = stitch.createPackage({
@@ -49,110 +60,106 @@ function Moonboots(opts, cb) {
         dependencies: libs
     });
 
-    if (this.config.developmentMode) {
-        this.compileTemplates();
-        opts.server.get('/' + this.config.fileName + '.js', this.stitchPackage.createServer());
-        watch.watchTree(this.config.templatesDir, function (filename) {
-            self.compileTemplates();
-        });
+    // register handler for serving JS
+    if (opts.server) {
+        opts.server.get('/' + this.config.fileName + '*.js', this.js());
     }
-
-    this._prepareFiles();
-}
-
-Moonboots.prototype._prepareFiles = function (mainCb) {
-    if (mainCb && this.source) {
-        return mainCb();
-    }
-
-    var self = this,
-        alreadyWritten = false,
-        shasum = crypto.createHash('sha1'),
-        // we'll calculate this to know whether to change the filename
-        checkSum;
 
     async.series([
         function (cb) {
             self.stitchPackage.compile(function (err, js) {
                 if (err) throw err;
-                self.source = js;
+                self.result.source = js;
                 cb();
             });
         },
         function (cb) {
+            var checkSum;
             // create our hash and build filenames accordingly
-            shasum.update(self.source);
-            checkSum = shasum.digest('hex').slice(0, 8);
-            self._fileName = self.config.fileName + '.' + checkSum + '.js';
-            self._minFileName = self.config.fileName + '.' + checkSum + '.min.js';
+            shasum.update(self.result.source);
+            checkSum = self.result.checkSum = shasum.digest('hex').slice(0, 8);
+            self.result.fileName = self.config.fileName + '.' + checkSum + '.js';
+            self.result.minFileName = self.config.fileName + '.' + checkSum + '.min.js';
             cb();
         },
         function (cb) {
             fs.readFile(self.config.templateFile, function (err, buffer) {
                 // ignore if we can't read template file
                 if (err) return cb();
-                self._html = buffer.toString().replace('#{fileName}', '/' + self.fileName());
-
-                if (fs.existsSync(self.config.buildDir + '/' + self._fileName)) {
-                    if (self.config.minify) {
-                        alreadyWritten = fs.existsSync(self.config.buildDir + '/' + self._minFileName);
-                    } else {
-                        alreadyWritten = true
-                    }
-                }
-
-                // if we're not building just fake an error so we skip to the final callbackat this point
-                if (!self.config.writeFiles || alreadyWritten) {
-                    cb('stophere');
-                } else {
-                    cb();
-                }
-            });
-        },
-        function (cb) {
-            rmrf(self.config.buildDir, function () {
+                self.result.html = buffer.toString().replace('#{fileName}', '/' + self.fileName());
                 cb();
             });
         },
-        async.apply(fs.mkdir, self.config.buildDir),
         function (cb) {
-            fs.writeFile(self.config.buildDir + '/' + self._fileName, self.source, cb);
-        },
-        function (cb) {
-            self.minifiedSource = UglifyJS.minify(self.config.buildDir + '/' + self._fileName).code;
-            fs.writeFile(self.config.buildDir + '/' + self._minFileName, self.minifiedSource, cb);
-        }
-    ], function () {
-        if (self.config.writeFiles) {
-            if (alreadyWritten) {
-                console.log('Moonboots: app files already written.');
-            } else {
-                console.log('Moonboots: app files built and written.');
+            if (!self.config.developmentMode && self.config.minify) {
+                self.result.minSource = UglifyJS.minify(self.result.source, {fromString: true}).code;
             }
+            cb();
         }
-        mainCb && mainCb();
+    ], function (err) {
+        if (err) throw err;
+        self.ready = true;
+        self.emit('ready');
     });
+}
+
+// inherit
+Moonboots.prototype = Object.create(EventEmitter.prototype, {
+    constructor: {
+        value: Moonboots
+    }
+});
+
+// util for making sure files are built before trying to
+// serve them
+Moonboots.prototype._ensureReady = function (cb) {
+    if (this.ready) {
+        cb();
+    } else {
+        this.on('ready', cb);
+    }
 };
 
+// returns request handler to serve html
 Moonboots.prototype.html = function () {
     var self = this;
     return function (req, res) {
-        self._prepareFiles(function () {
-            res.set('Content-Type', 'text/html; charset=utf-8').status(200).send(self._html);
+        self._ensureReady(function () {
+            res.set('Content-Type', 'text/html; charset=utf-8').send(self.result.html);
         });
     };
 };
 
+// returns request handler for serving JS file
+// minified,
+Moonboots.prototype.js = function () {
+    var self = this;
+    if (this.config.developmentMode) {
+        return this.stitchPackage.createServer();
+    } else {
+        return function (req, res) {
+            self._ensureReady(function () {
+                res.set('Content-Type', 'text/javascript; charset=utf-8');
+                // set our far-future cache headers
+                res.set('Cache-Control', 'public, max-age=' + self.config.cachePeriod);
+                if (self.config.minify) {
+                    res.send(self.result.minSource);
+                } else {
+                    res.send(self.result.source);
+                }
+            });
+        };
+    }
+};
+
+// returns the filename of the currently built file based on
+// development and minification settings.
 Moonboots.prototype.fileName = function () {
     if (this.config.developmentMode) {
         return this.config.fileName + '.js';
     } else {
-        return this.config.minify ? this._minFileName : this._fileName;
+        return this.config.minify ? this.result.minFileName : this.result.fileName;
     }
-};
-
-Moonboots.prototype.compileTemplates = function () {
-    templatizer(this.config.templatesDir, this.config.templatesFile);
 };
 
 module.exports = Moonboots;
