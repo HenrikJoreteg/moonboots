@@ -1,8 +1,8 @@
 var fs = require('fs'),
     crypto = require('crypto'),
-    stitch = require('stitch'),
     async = require('async'),
     EventEmitter = require('events').EventEmitter,
+    browserify = require('browserify'),
     UglifyJS = require('uglify-js');
 
 
@@ -10,26 +10,23 @@ function Moonboots(opts, cb) {
     var self = this,
         shasum = crypto.createHash('sha1'),
         // we'll calculate this to know whether to change the filename
-        libs,
         item;
 
     // inherit
     EventEmitter.call(this);
 
-    if (!opts.dir) {
-        throw new Error("You must supply at minimum a directory name where your app lives: {dir: 'myApp'}");
+    if (!opts.main) {
+        throw new Error("You must supply at minimum a `main` file for your moonboots app: {main: 'myApp.js'}");
     }
 
     this.config = {
-        dir: opts.dir,
         fileName: 'app',
-        clientModules: [opts.dir + '/modules', opts.dir + '/app'],
-        dependencyFolder: opts.dir + '/libraries',
         minify: true,
         developmentMode: false,
         templateFile: __dirname + '/sample/app.html',
         server: '',
-        cachePeriod: 86400000 * 360 // one year
+        cachePeriod: 86400000 * 360, // one year,
+        browserify: {} // browerify options
     };
 
     // Were we'll store generated
@@ -40,7 +37,8 @@ function Moonboots(opts, cb) {
         html: '',
         fileName: '',
         minFileName: '',
-        checkSum: ''
+        checkSum: '',
+        libs: ''
     };
 
     if (typeof opts === 'object') {
@@ -49,29 +47,16 @@ function Moonboots(opts, cb) {
         }
     }
 
-    // build out full paths for our libraries
-    libs = (this.config.libraries || []).map(function (lib) {
-        return self.config.dependencyFolder + '/' + lib;
-    });
-
-    // our stitch package
-    this.stitchPackage = stitch.createPackage({
-        paths: this.config.clientModules,
-        dependencies: libs
-    });
-
     // register handler for serving JS
     if (opts.server) {
         opts.server.get('/' + this.config.fileName + '*.js', this.js());
     }
 
+    this.concatExternalLibraries();
+
     async.series([
         function (cb) {
-            self.stitchPackage.compile(function (err, js) {
-                if (err) throw err;
-                self.result.source = js;
-                cb();
-            });
+            self.prepareBundle(cb);
         },
         function (cb) {
             var checkSum;
@@ -83,7 +68,7 @@ function Moonboots(opts, cb) {
             cb();
         },
         function (cb) {
-            fs.readFile(self.config.templateFile, function (err, buffer) {
+            fs.readFile(self.config.templateFile || __dirname + 'template.html', function (err, buffer) {
                 // ignore if we can't read template file
                 if (err) return cb();
                 self.result.html = buffer.toString().replace('#{fileName}', '/' + self.fileName());
@@ -110,6 +95,30 @@ Moonboots.prototype = Object.create(EventEmitter.prototype, {
     }
 });
 
+Moonboots.prototype.concatExternalLibraries = function () {
+    if (this.result.libs) return this.result.libs;
+    var libs = this.config.libraries || [],
+        result = ''
+
+    libs.forEach(function (file) {
+        result += (fs.readFileSync(file) + '\n');
+    });
+
+    this.result.libs = result;
+};
+
+Moonboots.prototype.prepareBundle = function (cb) {
+    var self = this;
+
+    this.bundle = browserify();
+    this.bundle.add(self.config.main);
+    this.bundle.bundle(function (err, js) {
+        if (err) throw err;
+        self.result.source = self.result.libs + js;
+        cb && cb();
+    });
+};
+
 // util for making sure files are built before trying to
 // serve them
 Moonboots.prototype._ensureReady = function (cb) {
@@ -135,7 +144,12 @@ Moonboots.prototype.html = function () {
 Moonboots.prototype.js = function () {
     var self = this;
     if (this.config.developmentMode) {
-        return this.stitchPackage.createServer();
+        return function (req, res) {
+            self.prepareBundle(function () {
+                res.set('Content-Type', 'text/javascript; charset=utf-8');
+                res.send(self.result.source);
+            });
+        };
     } else {
         return function (req, res) {
             self._ensureReady(function () {
