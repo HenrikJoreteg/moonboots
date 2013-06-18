@@ -1,4 +1,6 @@
 var fs = require('fs'),
+    path = require('path'),
+    path = require('path'),
     crypto = require('crypto'),
     async = require('async'),
     EventEmitter = require('events').EventEmitter,
@@ -25,8 +27,9 @@ function Moonboots(opts, cb) {
         developmentMode: false,
         templateFile: __dirname + '/sample/app.html',
         server: '',
-        cachePeriod: 86400000 * 360, // one year,
-        browserify: {} // browerify options
+        cachePeriod: 86400000 * 360, // one year
+        browserify: {}, // browerify options
+        modulesDir: ''
     };
 
     // Were we'll store generated
@@ -108,11 +111,20 @@ Moonboots.prototype.concatExternalLibraries = function () {
 };
 
 Moonboots.prototype.prepareBundle = function (cb) {
-    var self = this;
+    var self = this,
+        modules;
 
     this.bundle = browserify();
+
+    if (this.config.modulesDir) {
+        modules = fs.readdirSync(this.config.modulesDir);
+        modules.forEach(function (moduleFileName) {
+            self.bundle.require(self.config.modulesDir + '/' + moduleFileName, {expose: path.basename(moduleFileName, '.js')});
+        });
+    }
+
     this.bundle.add(self.config.main);
-    this.bundle.bundle(function (err, js) {
+    this.bundle.bundle(this.config.browserify, function (err, js) {
         if (err) throw err;
         self.result.source = self.result.libs + js;
         cb && cb();
