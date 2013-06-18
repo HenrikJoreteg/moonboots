@@ -72,23 +72,23 @@ app.listen(3000);
 
 Available options that can be passed to Moonboots:
 
-`main` (required, filepath) - The main entry point of your client app. Browserify uses this build out your dependency tree.
-`server` (optional, connect or express app, default: null) - Highly recommend using this. This way moonboots worries about serving your JS for you in the appropriate format given your other settings.
+- `main` (required, filepath) - The main entry point of your client app. Browserify uses this build out your dependency tree.
+- `server` (optional, connect or express app, default: null) - Highly recommend using this. This way moonboots worries about serving your JS for you in the appropriate format given your other settings.
 `developmentMode` (optional, boolean, default: false) - In development mode the JS is recompiled each time it's requested by the browser and it's not minified. Very important this isn't left this way for production. 
-`libraries` (optional, array of file paths, default: []) - An array of paths of JS files to concatenate and include before any CommonJS bundled code. This is useful for stuff like jQuery and jQuery plugins. Note that they will be included in the order specified. So if you're including a jQuery plugin, you'd better be sure that jQuery is listed first. 
-`templateFile` (optinal, filepath, default: bundled template): __dirname + '/sample/app.html',
-`cachePeriod` (optional, miliseconds to cache JS file, default: one year in MS)
-`browerify` (optional, object, default: {}) - options to pass directly into browserify's `bundle` methods.
-`modulesDir` (optional, directory path, default: '') - directory path of modules to be directly requirable (without using relative require paths). For example if you've got some helper modules that are not on npm but you still want to be able to require directly by name, you can include them here. So you can, for example, put a modified version of backbone in here and still just `require('backbone')`.
+- `libraries` (optional, array of file paths, default: []) - An array of paths of JS files to concatenate and include before any CommonJS bundled code. This is useful for stuff like jQuery and jQuery plugins. Note that they will be included in the order specified. So if you're including a jQuery plugin, you'd better be sure that jQuery is listed first. 
+- `templateFile` (optinal, filepath, default: bundled template): __dirname + '/sample/app.html',
+- `cachePeriod` (optional, miliseconds to cache JS file, default: one year in MS)
+- `browerify` (optional, object, default: {}) - options to pass directly into browserify's `bundle` methods.
+- `modulesDir` (optional, directory path, default: '') - directory path of modules to be directly requirable (without using relative require paths). For example if you've got some helper modules that are not on npm but you still want to be able to require directly by name, you can include them here. So you can, for example, put a modified version of backbone in here and still just `require('backbone')`.
 
 
 ## Methods
 
-`moonboots.html()` - returns connect request handler that will server the appropriate HTML file with the correct JS file name based on current settings.
+**moonboots.html()** - returns connect request handler that will server the appropriate HTML file with the correct JS file name based on current settings.
 
-`moonboots.fileName()` - returns string of the current filename based on current config. Useful if you want to render your own base html template or if you want to know what the filename is to prime someone's cache while on a login page, etc.
+**moonboots.fileName()** - returns string of the current filename based on current config. Useful if you want to render your own base html template or if you want to know what the filename is to prime someone's cache while on a login page, etc.
 
-`moonboots.js()` - returns connect-compatible request handler that serves the JS file based on settings. If you use the `server` option, this will just be done for you. But you can also do it yourself using this method.
+**moonboots.js()** - returns connect-compatible request handler that serves the JS file based on settings. If you use the `server` option, this will just be done for you. But you can also do it yourself using this method.
 `
 
 
