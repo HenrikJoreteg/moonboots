@@ -126,6 +126,13 @@ Moonboots.prototype.prepareBundle = function (cb) {
     }
 
     this.bundle.add(self.config.main);
+
+    if (this.config.browserify.transforms) {
+      this.config.browserify.transforms.forEach(function(tr) {
+        this.bundle.transform(tr);
+      }.bind(this));
+    }
+
     this.bundle.bundle(this.config.browserify, function (err, js) {
         if (err) throw err;
         self.result.source = self.result.libs + js;

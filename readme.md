@@ -78,7 +78,8 @@ Available options that can be passed to Moonboots:
 - `libraries` (optional, array of file paths, default: []) - An array of paths of JS files to concatenate and include before any CommonJS bundled code. This is useful for stuff like jQuery and jQuery plugins. Note that they will be included in the order specified. So if you're including a jQuery plugin, you'd better be sure that jQuery is listed first. 
 - `templateFile` (optinal, filepath, default: bundled template): __dirname + '/sample/app.html',
 - `cachePeriod` (optional, miliseconds to cache JS file, default: one year in MS)
-- `browerify` (optional, object, default: {}) - options to pass directly into browserify's `bundle` methods.
+- `browerify` (optional, object, default: {}) - options to pass directly into browserify's `bundle` methods, as detailed [here](https://github.com/substack/node-browserify#bbundleopts-cb). Additional options are:
+  - `browserify.transforms` (optional, list, default: []) - list of transforms to apply to the browserify bundle, see [here](https://github.com/substack/node-browserify#btransformtr) for more details.
 - `modulesDir` (optional, directory path, default: '') - directory path of modules to be directly requirable (without using relative require paths). For example if you've got some helper modules that are not on npm but you still want to be able to require directly by name, you can include them here. So you can, for example, put a modified version of backbone in here and still just `require('backbone')`.
 
 
