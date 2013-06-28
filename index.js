@@ -119,7 +119,9 @@ Moonboots.prototype.prepareBundle = function (cb) {
     if (this.config.modulesDir) {
         modules = fs.readdirSync(this.config.modulesDir);
         modules.forEach(function (moduleFileName) {
-            self.bundle.require(self.config.modulesDir + '/' + moduleFileName, {expose: path.basename(moduleFileName, '.js')});
+            if (path.extname(moduleFileName) === '.js') {
+                self.bundle.require(self.config.modulesDir + '/' + moduleFileName, {expose: path.basename(moduleFileName, '.js')});
+            }
         });
     }
 
