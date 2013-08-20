@@ -1,18 +1,16 @@
-var fs = require('fs'),
-    path = require('path'),
-    path = require('path'),
-    crypto = require('crypto'),
-    async = require('async'),
-    EventEmitter = require('events').EventEmitter,
-    browserify = require('browserify'),
-    UglifyJS = require('uglify-js');
+var fs = require('fs');
+var crypto = require('crypto');
+var async = require('async');
+var EventEmitter = require('events').EventEmitter;
+var browserify = require('browserify');
+var UglifyJS = require('uglify-js');
 
 
 function Moonboots(opts, cb) {
-    var self = this,
-        shasum = crypto.createHash('sha1'),
-        // we'll calculate this to know whether to change the filename
-        item;
+    var self = this;
+    // we'll calculate this to know whether to change the filename
+    var shasum = crypto.createHash('sha1');
+    var item;
 
     // inherit
     EventEmitter.call(this);
@@ -27,9 +25,12 @@ function Moonboots(opts, cb) {
         developmentMode: false,
         templateFile: __dirname + '/sample/app.html',
         server: '',
-        cachePeriod: 86400000 * 360, // one year
-        browserify: {}, // browerify options
-        modulesDir: ''
+        cachePeriod: 86400000 * 360, // one year,
+        // overridable browerify options
+        browserify: {
+            // enables sourcemaps in development mode
+            debug: opts.developmentMode
+        }
     };
 
     // Were we'll store generated
@@ -100,8 +101,8 @@ Moonboots.prototype = Object.create(EventEmitter.prototype, {
 
 Moonboots.prototype.concatExternalLibraries = function () {
     if (this.result.libs) return this.result.libs;
-    var libs = this.config.libraries || [],
-        result = ''
+    var libs = this.config.libraries || [];
+    var result = '';
 
     libs.forEach(function (file) {
         result += (fs.readFileSync(file) + '\n');
@@ -111,25 +112,14 @@ Moonboots.prototype.concatExternalLibraries = function () {
 };
 
 Moonboots.prototype.prepareBundle = function (cb) {
-    var self = this,
-        modules;
+    var self = this;
 
     this.bundle = browserify();
-
-    if (this.config.modulesDir) {
-        modules = fs.readdirSync(this.config.modulesDir);
-        modules.forEach(function (moduleFileName) {
-            if (path.extname(moduleFileName) === '.js') {
-                self.bundle.require(self.config.modulesDir + '/' + moduleFileName, {expose: path.basename(moduleFileName, '.js')});
-            }
-        });
-    }
-
     this.bundle.add(self.config.main);
     this.bundle.bundle(this.config.browserify, function (err, js) {
         if (err) throw err;
         self.result.source = self.result.libs + js;
-        cb && cb();
+        if (cb) cb();
     });
 };
 
@@ -154,30 +144,31 @@ Moonboots.prototype.html = function () {
 };
 
 // returns request handler for serving JS file
-// minified,
+// minified, if appropriate.
 Moonboots.prototype.js = function () {
     var self = this;
-    if (this.config.developmentMode) {
-        return function (req, res) {
-            self.prepareBundle(function () {
-                res.set('Content-Type', 'text/javascript; charset=utf-8');
-                res.send(self.result.source);
-            });
-        };
-    } else {
-        return function (req, res) {
-            self._ensureReady(function () {
-                res.set('Content-Type', 'text/javascript; charset=utf-8');
-                // set our far-future cache headers
+    return function (req, res) {
+        self.sourceCode(function (source) {
+            res.set('Content-Type', 'text/javascript; charset=utf-8');
+            // set our far-future cache headers if not in dev mode
+            if (!self.config.developmentMode) {
                 res.set('Cache-Control', 'public, max-age=' + self.config.cachePeriod);
-                if (self.config.minify) {
-                    res.send(self.result.minSource);
-                } else {
-                    res.send(self.result.source);
-                }
-            });
-        };
-    }
+            }
+            res.send(source);
+        });
+    };
+};
+
+// returns the appropriate sourcecode based on settings
+Moonboots.prototype.sourceCode = function (cb) {
+    var self = this;
+    self._ensureReady(function () {
+        if (self.config.minify && !self.config.developmentMode) {
+            cb(self.result.minSource);
+        } else {
+            cb(self.result.source);
+        }
+    });
 };
 
 // returns the filename of the currently built file based on

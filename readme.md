@@ -81,12 +81,19 @@ Available options that can be passed to Moonboots:
 - `browerify` (optional, object, default: {}) - options to pass directly into browserify's `bundle` methods.
 - `modulesDir` (optional, directory path, default: '') - directory path of modules to be directly requirable (without using relative require paths). For example if you've got some helper modules that are not on npm but you still want to be able to require directly by name, you can include them here. So you can, for example, put a modified version of backbone in here and still just `require('backbone')`.
 
+## About Source Maps
+
+Sourcemaps let you send the actual code to the browser along with a mapping to the individual module files. This makes it easier to debug, since you can get relevant line numbers that correspond to your actual source within your modules instead of the built bundle source.
+
+By default, moonboots enable these sourcemaps in development mode. If you'd rather turn it off and still be in development mode. Simply use pass `browserify: {debug: false}` as part of your moonboots config.
 
 ## Methods
 
 **moonboots.html()** - returns connect request handler that will server the appropriate HTML file with the correct JS file name based on current settings.
 
 **moonboots.fileName()** - returns string of the current filename based on current config. Useful if you want to render your own base html template or if you want to know what the filename is to prime someone's cache while on a login page, etc.
+
+**moonboots.sourceCode(cb)** - returns acutal JS source code. Useful if you're using moonboots in dev, but want to put output file somewhere else, for example on a CDN as part of a build process.
 
 **moonboots.js()** - returns connect-compatible request handler that serves the JS file based on settings. If you use the `server` option, this will just be done for you. But you can also do it yourself using this method.
 `

@@ -1,16 +1,16 @@
 {
     "name": "moonboots",
     "description": "A set of tools and conventions for building/serving clientside apps with node.js",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "dependencies": {
         "async": "0.2.9",
         "underscore": "1.4.4",
         "uglify-js": "2.3.6",
-        "browserify": "2.18.1"
+        "browserify": "2.18.1",
+        "underscore": "1.4.4"
     },
     "devDependencies": {
         "express": "3.2.6",
-        "backbone": "1.0.0",
-        "underscore": "1.4.4"
+        "backbone": "1.0.0"
     }
 }
