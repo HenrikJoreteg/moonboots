@@ -6,7 +6,7 @@
         "async": "0.2.9",
         "underscore": "1.5.1",
         "uglify-js": "2.4.0",
-        "browserify": "2.29.0"
+        "browserify": "2.18.1"
     },
     "devDependencies": {
         "express": "3.x.x",
