@@ -4,7 +4,7 @@ A set of conventions and tools for building, bundling and serving single page ap
 
 The bulk of the awesome bundling of CommonJS modules for client use is done using [browserify](http://browserify.org/).
 
-This just gives us a structured way to include non-CommonJS libraries, work in development mode and agressively cache built JS files for production.
+This just gives us a structured way to include non-CommonJS libraries, work in development mode and agressively cache built JS and CSS files for production.
 
 
 ## What it does
@@ -13,7 +13,7 @@ This just gives us a structured way to include non-CommonJS libraries, work in d
 1. Let's a developer focus on building a great clientside experience, not boiler plate.
 1. Let's you use CommonJS modules to structure your clientside code.
 1. Manages clientside files during development so you can just write code.
-1. Compiles/minifies/serves uniquely named JS files containing your application with really aggressive caching (since the name will change if the app does).
+1. Compiles/minifies/serves uniquely named JS files (and CSS files optionally) containing your application with really aggressive caching (since the name will change if the app does).
 1. Plays nicely with [express.js](http://expressjs.com)
 
 
@@ -41,6 +41,9 @@ var clientApp = new Moonboots({
     developmentMode: false,
     libraries: [
         __dirname + '/sample/libraries/jquery.js'
+    ],
+    stylesheets: [
+        __dirname + '/styles.css'
     ],
     server: app
 });
@@ -96,6 +99,10 @@ By default, moonboots enable these sourcemaps in development mode. If you'd rath
 **moonboots.sourceCode(cb)** - returns acutal JS source code. Useful if you're using moonboots in dev, but want to put output file somewhere else, for example on a CDN as part of a build process.
 
 **moonboots.js()** - returns connect-compatible request handler that serves the JS file based on settings. If you use the `server` option, this will just be done for you. But you can also do it yourself using this method.
+`
+**moonboots.cssSource(cb)** - returns acutal CSS. Useful if you're using moonboots in dev, but want to put output file somewhere else, for example on a CDN as part of a build process.
+
+**moonboots.css()** - returns connect-compatible request handler that serves the CSS file based on settings. If you use the `server` option, this will just be done for you. But you can also do it yourself using this method.
 `
 
 

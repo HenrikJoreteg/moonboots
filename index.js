@@ -4,12 +4,15 @@ var async = require('async');
 var EventEmitter = require('events').EventEmitter;
 var browserify = require('browserify');
 var UglifyJS = require('uglify-js');
+var cssmin = require('cssmin');
+
 
 
 function Moonboots(opts, cb) {
     var self = this;
     // we'll calculate this to know whether to change the filename
-    var shasum = crypto.createHash('sha1');
+    var jssha = crypto.createHash('sha1');
+    var csssha = crypto.createHash('sha1');
     var item;
 
     // inherit
@@ -20,17 +23,20 @@ function Moonboots(opts, cb) {
     }
 
     this.config = {
-        fileName: 'app',
+        jsFileName: 'app',
+        cssFileName: 'styles',
         minify: true,
         developmentMode: false,
-        templateFile: __dirname + '/sample/app.html',
+        templateFile: '',
         server: '',
         cachePeriod: 86400000 * 360, // one year,
         // overridable browerify options
         browserify: {
-            // enables sourcemaps in development mode
+            // enables source maps in development mode
             debug: opts.developmentMode
-        }
+        },
+        styles: [],
+        libraries: []
     };
 
     // Were we'll store generated
@@ -38,14 +44,13 @@ function Moonboots(opts, cb) {
     this.result = {
         source: '',
         minSource: '',
+        css: '',
         html: '',
-        fileName: '',
-        minFileName: '',
+        jsFileName: '',
+        jsMinFileName: '',
         checkSum: '',
         libs: ''
     };
-
-
 
     if (typeof opts === 'object') {
         for (item in opts) {
@@ -55,7 +60,8 @@ function Moonboots(opts, cb) {
 
     // register handler for serving JS
     if (opts.server) {
-        opts.server.get('/' + this.config.fileName + '*.js', this.js());
+        opts.server.get('/' + this.config.jsFileName + '*.js', this.js());
+        opts.server.get('/' + this.config.cssFileName + '*.css', this.css());
     }
 
     this.concatExternalLibraries();
@@ -65,24 +71,30 @@ function Moonboots(opts, cb) {
             self.prepareBundle(cb);
         },
         function (cb) {
-            var checkSum;
+            var jsCheckSum;
             // create our hash and build filenames accordingly
-            shasum.update(self.result.source);
-            checkSum = self.result.checkSum = shasum.digest('hex').slice(0, 8);
-            self.result.fileName = self.config.fileName + '.' + checkSum + '.js';
-            self.result.minFileName = self.config.fileName + '.' + checkSum + '.min.js';
+            jssha.update(self.result.source);
+            jsCheckSum = self.result.jsCheckSum = jssha.digest('hex').slice(0, 8);
+
+            // store filenames
+            self.result.jsFileName = self.config.jsFileName + '.' + jsCheckSum + '.js';
+            self.result.jsMinFileName = self.config.jsFileName + '.' + jsCheckSum + '.min.js';
+
+            // css
+            csssha.update(self.cssSource());
+            cssCheckSum = self.result.cssCheckSum = csssha.digest('hex').slice(0, 8);
+
+            // store filenames
+            self.result.cssFileName = self.config.cssFileName + '.' + cssCheckSum + '.css';
+            self.result.cssMinFileName = self.config.cssFileName + '.' + cssCheckSum + '.min.css';
+
+            // render our template
+            self.result.html = self.getTemplate();
+
             cb();
         },
         function (cb) {
-            fs.readFile(self.config.templateFile || __dirname + 'template.html', function (err, buffer) {
-                // ignore if we can't read template file
-                if (err) return cb();
-                self.result.html = buffer.toString().replace('#{fileName}', '/' + self.fileName());
-                cb();
-            });
-        },
-        function (cb) {
-            if (!self.config.developmentMode && self.config.minify) {
+            if (self._shouldMinify()) {
                 self.result.minSource = UglifyJS.minify(self.result.source, {fromString: true}).code;
             }
             cb();
@@ -102,15 +114,8 @@ Moonboots.prototype = Object.create(EventEmitter.prototype, {
 });
 
 Moonboots.prototype.concatExternalLibraries = function () {
-    if (this.result.libs) return this.result.libs;
-    var libs = this.config.libraries || [];
-    var result = '';
-
-    libs.forEach(function (file) {
-        result += (fs.readFileSync(file) + '\n');
-    });
-
-    this.result.libs = result;
+    var cache = this.result;
+    return cache.libs || (cache.libs = concatFiles(this.config.libraries));
 };
 
 Moonboots.prototype.prepareBundle = function (cb) {
@@ -125,6 +130,11 @@ Moonboots.prototype.prepareBundle = function (cb) {
     });
 };
 
+Moonboots.prototype.getCSS = function (minify) {
+    var css = concatFiles(this.config.stylesheets);
+    return minify ? cssmin(css) : css;
+};
+
 // util for making sure files are built before trying to
 // serve them
 Moonboots.prototype._ensureReady = function (cb) {
@@ -134,6 +144,10 @@ Moonboots.prototype._ensureReady = function (cb) {
         this.on('ready', cb);
     }
 };
+
+Moonboots.prototype._shouldMinify = function () {
+    return this.config.minify && !this.config.developmentMode;
+}
 
 // returns request handler to serve html
 Moonboots.prototype.html = function () {
@@ -161,6 +175,29 @@ Moonboots.prototype.js = function () {
     };
 };
 
+// returns request handler for serving JS file
+// minified, if appropriate.
+Moonboots.prototype.css = function () {
+    var self = this;
+    return function (req, res) {
+        res.set('Content-Type', 'text/css; charset=utf-8');
+            // set our far-future cache headers if not in dev mode
+        if (!self.config.developmentMode) {
+            res.set('Cache-Control', 'public, max-age=' + self.config.cachePeriod);
+        }
+        res.send(self.cssSource());
+    };
+};
+
+Moonboots.prototype.cssSource = function () {
+    var cache = this.result;
+    if (this.config.developmentMode) {
+        return this.getCSS();
+    } else {
+        return cache.css || (cache.css = this.getCSS(this.config.minify));
+    }
+};
+
 // returns the appropriate sourcecode based on settings
 Moonboots.prototype.sourceCode = function (cb) {
     var self = this;
@@ -183,12 +220,60 @@ Moonboots.prototype.sourceCode = function (cb) {
 
 // returns the filename of the currently built file based on
 // development and minification settings.
-Moonboots.prototype.fileName = function () {
+Moonboots.prototype.jsFileName = function () {
     if (this.config.developmentMode) {
-        return this.config.fileName + '.js';
+        return this.config.jsFileName + '.js';
     } else {
-        return this.config.minify ? this.result.minFileName : this.result.fileName;
+        return this.config.minify ? this.result.jsMinFileName : this.result.jsFileName;
     }
 };
 
+// returns the filename of the currently built file based on
+// development and minification settings.
+Moonboots.prototype.cssFileName = function () {
+    if (this.config.developmentMode) {
+        return this.config.cssFileName + '.css';
+    } else {
+        return this.config.minify ? this.result.cssMinFileName : this.result.cssFileName;
+    }
+};
+
+Moonboots.prototype.getTemplate = function () {
+    var templateString = '';
+    if (this.config.templateFile) {
+        templateString = fs.readFileSync(this.config.templateFile, 'utf-8');
+        templateString = templateString
+            .replace('#{jsFileName}', '/' + this.jsFileName())
+            .replace('#{cssFileName}', '/' + this.cssFileName());
+    } else {
+        templateString = this.defaultTemplate();
+    }
+    return templateString;
+};
+
+Moonboots.prototype.defaultTemplate = function () {
+    var string = '<!DOCTYPE html>\n';
+    if (this.getCSS()) {
+        string += linkTag(this.cssFileName());
+    }
+    string += scriptTag(this.jsFileName());
+    return this.result.html = string;
+};
+
 module.exports = Moonboots;
+
+
+// a few helpers
+function concatFiles(arrayOfFiles) {
+    return (arrayOfFiles || []).reduce(function (result, fileName) {
+        return result + fs.readFileSync(fileName) + '\n';
+    }, '');
+}
+
+function linkTag(filename) {
+    return '<link href="' + filename + '" rel=stylesheet type="text/css">\n';
+}
+
+function scriptTag(filename) {
+    return '<script src="' + filename + '"></script>';
+}
