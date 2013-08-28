@@ -45,6 +45,8 @@ function Moonboots(opts, cb) {
         libs: ''
     };
 
+
+
     if (typeof opts === 'object') {
         for (item in opts) {
             this.config[item] = opts[item];
@@ -119,7 +121,7 @@ Moonboots.prototype.prepareBundle = function (cb) {
     this.bundle.bundle(this.config.browserify, function (err, js) {
         if (err) throw err;
         self.result.source = self.result.libs + js;
-        if (cb) cb();
+        if (cb) cb(null, self.result.source);
     });
 };
 
@@ -163,10 +165,18 @@ Moonboots.prototype.js = function () {
 Moonboots.prototype.sourceCode = function (cb) {
     var self = this;
     self._ensureReady(function () {
-        if (self.config.minify && !self.config.developmentMode) {
-            cb(self.result.minSource);
+        var config = self.config;
+
+        if (config.developmentMode) {
+            self.prepareBundle(function (err, source) {
+                cb(source);
+            });
         } else {
-            cb(self.result.source);
+            if (config.minify) {
+                cb(self.result.minSource);
+            } else {
+                cb(self.result.source);
+            }
         }
     });
 };
