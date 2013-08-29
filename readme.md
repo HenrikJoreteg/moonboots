@@ -83,6 +83,7 @@ Available options that can be passed to Moonboots:
 - `cachePeriod` (optional, miliseconds to cache JS file, default: one year in MS)
 - `browerify` (optional, object, default: {}) - options to pass directly into browserify's `bundle` methods.
 - `modulesDir` (optional, directory path, default: '') - directory path of modules to be directly requirable (without using relative require paths). For example if you've got some helper modules that are not on npm but you still want to be able to require directly by name, you can include them here. So you can, for example, put a modified version of backbone in here and still just `require('backbone')`.
+- `beforeBuild` (optional, function, default: nothing) - function to run before building the browserify bundle during development. This is useful for stuff like compiling clientside templates that need to be included in the bundle. If you specify a callback moonboots will wait for you to call it. If not, it will be run synchrnously (by the magic of Function.prototype.length).
 
 ## About Source Maps
 

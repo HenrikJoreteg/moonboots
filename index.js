@@ -36,7 +36,8 @@ function Moonboots(opts, cb) {
             debug: opts.developmentMode
         },
         styles: [],
-        libraries: []
+        libraries: [],
+        beforeBuild: function (cb) {cb();}
     };
 
     // Were we'll store generated
@@ -121,13 +122,23 @@ Moonboots.prototype.concatExternalLibraries = function () {
 Moonboots.prototype.prepareBundle = function (cb) {
     var self = this;
 
-    this.bundle = browserify();
-    this.bundle.add(self.config.main);
-    this.bundle.bundle(this.config.browserify, function (err, js) {
-        if (err) throw err;
-        self.result.source = self.result.libs + js;
-        if (cb) cb(null, self.result.source);
-    });
+    function bundle() {
+        self.bundle = browserify();
+        self.bundle.add(self.config.main);
+        self.bundle.bundle(self.config.browserify, function (err, js) {
+            if (err) throw err;
+            self.result.source = self.result.libs + js;
+            if (cb) cb(null, self.result.source);
+        });
+    }
+
+    // if they pass a callback, wait for it
+    if (this.config.beforeBuild.length) {
+        this.config.beforeBuild(bundle);
+    } else {
+        this.config.beforeBuild();
+        bundle();
+    }
 };
 
 Moonboots.prototype.getCSS = function (minify) {
