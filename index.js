@@ -282,9 +282,9 @@ function concatFiles(arrayOfFiles) {
 }
 
 function linkTag(filename) {
-    return '<link href="' + filename + '" rel=stylesheet type="text/css">\n';
+    return '<link href="/' + filename + '" rel=stylesheet type="text/css">\n';
 }
 
 function scriptTag(filename) {
-    return '<script src="' + filename + '"></script>';
+    return '<script src="/' + filename + '"></script>';
 }
