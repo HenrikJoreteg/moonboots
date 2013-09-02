@@ -31,10 +31,7 @@ function Moonboots(opts, cb) {
         server: '',
         cachePeriod: 86400000 * 360, // one year,
         // overridable browerify options
-        browserify: {
-            // enables source maps in development mode
-            debug: opts.developmentMode
-        },
+        browserify: {},
         styles: [],
         libraries: [],
         beforeBuild: function (cb) {cb();}
