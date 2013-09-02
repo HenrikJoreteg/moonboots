@@ -84,12 +84,11 @@ Available options that can be passed to Moonboots:
 - `browerify` (optional, object, default: {}) - options to pass directly into browserify's `bundle` methods.
 - `modulesDir` (optional, directory path, default: '') - directory path of modules to be directly requirable (without using relative require paths). For example if you've got some helper modules that are not on npm but you still want to be able to require directly by name, you can include them here. So you can, for example, put a modified version of backbone in here and still just `require('backbone')`.
 - `beforeBuild` (optional, function, default: nothing) - function to run before building the browserify bundle during development. This is useful for stuff like compiling clientside templates that need to be included in the bundle. If you specify a callback moonboots will wait for you to call it. If not, it will be run synchrnously (by the magic of Function.prototype.length).
+- `sourceMaps` (optional, boolean, default: false) - set to true to enable sourcemaps (will only work if developmentMode is also true).
 
 ## About Source Maps
 
 Sourcemaps let you send the actual code to the browser along with a mapping to the individual module files. This makes it easier to debug, since you can get relevant line numbers that correspond to your actual source within your modules instead of the built bundle source.
-
-By default, moonboots enable these sourcemaps in development mode. If you'd rather turn it off and still be in development mode. Simply use pass `browserify: {debug: false}` as part of your moonboots config.
 
 ## Methods
 

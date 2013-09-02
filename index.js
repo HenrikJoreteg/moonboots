@@ -32,6 +32,7 @@ function Moonboots(opts, cb) {
         cachePeriod: 86400000 * 360, // one year,
         // overridable browerify options
         browserify: {},
+        sourceMaps: false,
         styles: [],
         libraries: [],
         beforeBuild: function (cb) {cb();}
@@ -54,6 +55,12 @@ function Moonboots(opts, cb) {
         for (item in opts) {
             this.config[item] = opts[item];
         }
+    }
+
+    // make sourcemaps a simple top-level option that only works
+    // in development mode.
+    if (this.config.sourceMaps && this.config.developmentMode) {
+        this.config.browserify.debug = true;
     }
 
     // register handler for serving JS
