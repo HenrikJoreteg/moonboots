@@ -8,7 +8,7 @@ var cssmin = require('cssmin');
 
 
 
-function Moonboots(opts, cb) {
+function Moonboots(opts) {
     var self = this;
     // we'll calculate this to know whether to change the filename
     var jssha = crypto.createHash('sha1');
