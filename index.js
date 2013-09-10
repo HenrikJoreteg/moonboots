@@ -86,6 +86,7 @@ function Moonboots(opts) {
             self.result.jsMinFileName = self.config.jsFileName + '.' + jsCheckSum + '.min.js';
 
             // css
+            var cssCheckSum;
             csssha.update(self.cssSource());
             cssCheckSum = self.result.cssCheckSum = csssha.digest('hex').slice(0, 8);
 
@@ -171,7 +172,7 @@ Moonboots.prototype._ensureReady = function (cb) {
 
 Moonboots.prototype._shouldMinify = function () {
     return this.config.minify && !this.config.developmentMode;
-}
+};
 
 // returns request handler to serve html
 Moonboots.prototype.html = function () {
