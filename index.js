@@ -8,7 +8,7 @@ var cssmin = require('cssmin');
 
 
 
-function Moonboots(opts, cb) {
+function Moonboots(opts) {
     var self = this;
     // we'll calculate this to know whether to change the filename
     var jssha = crypto.createHash('sha1');
@@ -86,6 +86,7 @@ function Moonboots(opts, cb) {
             self.result.jsMinFileName = self.config.jsFileName + '.' + jsCheckSum + '.min.js';
 
             // css
+            var cssCheckSum;
             csssha.update(self.cssSource());
             cssCheckSum = self.result.cssCheckSum = csssha.digest('hex').slice(0, 8);
 
@@ -105,7 +106,9 @@ function Moonboots(opts, cb) {
             cb();
         }
     ], function (err) {
-        if (err) throw err;
+        if (err) {
+            self._bundleError(err);
+        }
         self.ready = true;
         self.emit('ready');
     });
@@ -117,6 +120,13 @@ Moonboots.prototype = Object.create(EventEmitter.prototype, {
         value: Moonboots
     }
 });
+
+Moonboots.prototype._bundleError = function (err) {
+    if (!this.config.developmentMode) throw err;
+    console.error(err.stack);
+    this.result.source = 'document.write("<pre>' + err.stack.split('\n').join('<br>').replace(/"/g, '&quot;') + '</pre>");';
+    return this.result.source;
+};
 
 Moonboots.prototype.concatExternalLibraries = function () {
     var cache = this.result;
@@ -130,7 +140,7 @@ Moonboots.prototype.prepareBundle = function (cb) {
         self.bundle = browserify();
         self.bundle.add(self.config.main);
         self.bundle.bundle(self.config.browserify, function (err, js) {
-            if (err) throw err;
+            if (err) return cb(null, self._bundleError(err));
             self.result.source = self.result.libs + js;
             if (cb) cb(null, self.result.source);
         });
@@ -162,7 +172,7 @@ Moonboots.prototype._ensureReady = function (cb) {
 
 Moonboots.prototype._shouldMinify = function () {
     return this.config.minify && !this.config.developmentMode;
-}
+};
 
 // returns request handler to serve html
 Moonboots.prototype.html = function () {
