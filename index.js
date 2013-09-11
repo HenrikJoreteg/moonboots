@@ -5,7 +5,7 @@ var EventEmitter = require('events').EventEmitter;
 var browserify = require('browserify');
 var UglifyJS = require('uglify-js');
 var cssmin = require('cssmin');
-
+var path = require('path');
 
 
 function Moonboots(opts, cb) {
@@ -27,6 +27,7 @@ function Moonboots(opts, cb) {
         cssFileName: 'styles',
         minify: true,
         developmentMode: false,
+        modulesDir: '',
         templateFile: '',
         server: '',
         cachePeriod: 86400000 * 360, // one year,
@@ -128,6 +129,14 @@ Moonboots.prototype.prepareBundle = function (cb) {
 
     function bundle() {
         self.bundle = browserify();
+        if (self.config.modulesDir) {
+            var modules = fs.readdirSync(self.config.modulesDir);
+            modules.forEach(function (moduleFileName) {
+                if (path.extname(moduleFileName) === '.js') {
+                    self.bundle.require(self.config.modulesDir + '/' + moduleFileName, {expose: path.basename(moduleFileName, '.js')});
+                }
+            });
+        }
         self.bundle.add(self.config.main);
         self.bundle.bundle(self.config.browserify, function (err, js) {
             if (err) throw err;
