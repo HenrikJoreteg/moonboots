@@ -27,6 +27,7 @@ function Moonboots(opts, cb) {
         cssFileName: 'styles',
         minify: true,
         developmentMode: false,
+        modulesDir: '',
         templateFile: '',
         server: '',
         cachePeriod: 86400000 * 360, // one year,
