@@ -85,6 +85,7 @@ Available options that can be passed to Moonboots:
 - `modulesDir` (optional, directory path, default: '') - directory path of modules to be directly requirable (without using relative require paths). For example if you've got some helper modules that are not on npm but you still want to be able to require directly by name, you can include them here. So you can, for example, put a modified version of backbone in here and still just `require('backbone')`.
 - `beforeBuild` (optional, function, default: nothing) - function to run before building the browserify bundle during development. This is useful for stuff like compiling clientside templates that need to be included in the bundle. If you specify a callback moonboots will wait for you to call it. If not, it will be run synchrnously (by the magic of Function.prototype.length).
 - `sourceMaps` (optional, boolean, default: false) - set to true to enable sourcemaps (will only work if developmentMode is also true).
+- `resourcePrefix` (optional, string, default: '/') - specify what dirname should be prefixed when generating template file. If you're serving the whole app statically you may need relative paths. So just passing resourcePrefix: '' would make the template render with `<script src="app.js"></script>` instead of `<script src="/app.js"></script>`.
 
 ## About Source Maps
 
@@ -99,12 +100,12 @@ Sourcemaps let you send the actual code to the browser along with a mapping to t
 **moonboots.sourceCode(cb)** - returns acutal JS source code. Useful if you're using moonboots in dev, but want to put output file somewhere else, for example on a CDN as part of a build process.
 
 **moonboots.js()** - returns connect-compatible request handler that serves the JS file based on settings. If you use the `server` option, this will just be done for you. But you can also do it yourself using this method.
-`
+
 **moonboots.cssSource(cb)** - returns acutal CSS. Useful if you're using moonboots in dev, but want to put output file somewhere else, for example on a CDN as part of a build process.
 
 **moonboots.css()** - returns connect-compatible request handler that serves the CSS file based on settings. If you use the `server` option, this will just be done for you. But you can also do it yourself using this method.
-`
 
+**moonboots.build(directory, cb)** - builds your `index.html` file and a `.js` and `.css` files to the folder specified.
 
 ## Full example
 

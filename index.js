@@ -5,6 +5,7 @@ var EventEmitter = require('events').EventEmitter;
 var browserify = require('browserify');
 var UglifyJS = require('uglify-js');
 var cssmin = require('cssmin');
+var path = require('path');
 
 
 
@@ -35,7 +36,8 @@ function Moonboots(opts, cb) {
         sourceMaps: false,
         styles: [],
         libraries: [],
-        beforeBuild: function (cb) {cb();}
+        beforeBuild: function (cb) {cb();},
+        resourcePrefix: '/'
     };
 
     // Were we'll store generated
@@ -255,11 +257,12 @@ Moonboots.prototype.cssFileName = function () {
 
 Moonboots.prototype.getTemplate = function () {
     var templateString = '';
+    var prefix = this.config.resourcePrefix;
     if (this.config.templateFile) {
         templateString = fs.readFileSync(this.config.templateFile, 'utf-8');
         templateString = templateString
-            .replace('#{jsFileName}', '/' + this.jsFileName())
-            .replace('#{cssFileName}', '/' + this.cssFileName());
+            .replace('#{jsFileName}', prefix + this.jsFileName())
+            .replace('#{cssFileName}', prefix + this.cssFileName());
     } else {
         templateString = this.defaultTemplate();
     }
@@ -268,11 +271,29 @@ Moonboots.prototype.getTemplate = function () {
 
 Moonboots.prototype.defaultTemplate = function () {
     var string = '<!DOCTYPE html>\n';
+    var prefix = this.config.resourcePrefix;
     if (this.getCSS()) {
-        string += linkTag(this.cssFileName());
+        string += linkTag(prefix + this.cssFileName());
     }
-    string += scriptTag(this.jsFileName());
+    string += scriptTag(prefix + this.jsFileName());
     return this.result.html = string;
+};
+
+Moonboots.prototype.build = function (folder, callback) {
+    var self = this;
+    this.sourceCode(function (source) {
+        async.parallel([
+            function (cb) {
+                fs.writeFile(path.join(folder, self.jsFileName()), source, cb);
+            },
+            function (cb) {
+                fs.writeFile(path.join(folder, self.cssFileName()), self.cssSource(), cb);
+            },
+            function (cb) {
+                fs.writeFile(path.join(folder, 'index.html'), self.getTemplate(), cb);
+            }
+        ], callback);
+    });
 };
 
 module.exports = Moonboots;
@@ -286,9 +307,9 @@ function concatFiles(arrayOfFiles) {
 }
 
 function linkTag(filename) {
-    return '<link href="/' + filename + '" rel=stylesheet type="text/css">\n';
+    return '<link href="' + filename + '" rel=stylesheet type="text/css">\n';
 }
 
 function scriptTag(filename) {
-    return '<script src="/' + filename + '"></script>';
+    return '<script src="' + filename + '"></script>';
 }
