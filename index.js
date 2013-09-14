@@ -67,8 +67,8 @@ function Moonboots(opts, cb) {
 
     // register handler for serving JS
     if (opts.server) {
-        opts.server.get('/' + this.config.jsFileName + '*.js', this.js());
-        opts.server.get('/' + this.config.cssFileName + '*.css', this.css());
+        opts.server.get('/' + encodeURIComponent(this.config.jsFileName) + '*.js', this.js());
+        opts.server.get('/' + encodeURIComponent(this.config.cssFileName) + '*.css', this.css());
     }
 
     this.concatExternalLibraries();

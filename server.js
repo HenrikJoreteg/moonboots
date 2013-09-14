@@ -9,7 +9,6 @@ var clientApp = new Moonboots({
     libraries: [
         __dirname + '/sample/libraries/jquery.js'
     ],
-    templateFile: __dirname + '/sample/app.html'
     server: app
 });
 

@@ -3,8 +3,10 @@ var Backbone = require('backbone');
 module.exports = {
     launch: function () {
         window.app = this;
-        console.log("I RAN!");
-        console.log("REQUIAB", Backbone);
+
+        $(function () {
+            $('body').html('Woo! View source to see what rendered me.')
+        });
     }
 }
 
