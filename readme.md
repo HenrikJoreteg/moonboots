@@ -81,7 +81,8 @@ Available options that can be passed to Moonboots:
 - `libraries` (optional, array of file paths, default: []) - An array of paths of JS files to concatenate and include before any CommonJS bundled code. This is useful for stuff like jQuery and jQuery plugins. Note that they will be included in the order specified. So if you're including a jQuery plugin, you'd better be sure that jQuery is listed first. 
 - `templateFile` (optinal, filepath, default: bundled template): __dirname + '/sample/app.html',
 - `cachePeriod` (optional, miliseconds to cache JS file, default: one year in MS)
-- `browerify` (optional, object, default: {}) - options to pass directly into browserify's `bundle` methods.
+- `browerify` (optional, object, default: {}) - options to pass directly into browserify's `bundle` methods, as detailed [here](https://github.com/substack/node-browserify#bbundleopts-cb). Additional options are:
+  - `browserify.transforms` (optional, list, default: []) - list of transforms to apply to the browserify bundle, see [here](https://github.com/substack/node-browserify#btransformtr) for more details.
 - `modulesDir` (optional, directory path, default: '') - directory path of modules to be directly requirable (without using relative require paths). For example if you've got some helper modules that are not on npm but you still want to be able to require directly by name, you can include them here. So you can, for example, put a modified version of backbone in here and still just `require('backbone')`.
 - `beforeBuild` (optional, function, default: nothing) - function to run before building the browserify bundle during development. This is useful for stuff like compiling clientside templates that need to be included in the bundle. If you specify a callback moonboots will wait for you to call it. If not, it will be run synchrnously (by the magic of Function.prototype.length).
 - `sourceMaps` (optional, boolean, default: false) - set to true to enable sourcemaps (will only work if developmentMode is also true).
@@ -110,6 +111,12 @@ Sourcemaps let you send the actual code to the browser along with a mapping to t
 ## Full example
 
 For a working example, run `node server.js` file and it'll server the `sample` directory.
+
+## Changelog
+
+0.7.0
+    - Support for browserify transforms (thanks @latentflip)
+    - Write syntax errors to browser in dev mode (thanks @lukekarrys)
 
 ## License
 

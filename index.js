@@ -116,13 +116,14 @@ function Moonboots(opts) {
     });
 }
 
-// inherit
+// Inherit from event emitter
 Moonboots.prototype = Object.create(EventEmitter.prototype, {
     constructor: {
         value: Moonboots
     }
 });
 
+// Shows stack in browser instead of just blowing up on the server
 Moonboots.prototype._bundleError = function (err) {
     if (!this.config.developmentMode) throw err;
     console.error(err.stack);
@@ -130,16 +131,21 @@ Moonboots.prototype._bundleError = function (err) {
     return this.result.source;
 };
 
+// Returns contactenated external libraries
 Moonboots.prototype.concatExternalLibraries = function () {
     var cache = this.result;
     return cache.libs || (cache.libs = concatFiles(this.config.libraries));
 };
 
+// Actually generate the JS bundle
 Moonboots.prototype.prepareBundle = function (cb) {
     var self = this;
 
     function bundle() {
         self.bundle = browserify();
+
+        // handle module folder that you want to be able to require
+        // without relative paths.
         if (self.config.modulesDir) {
             var modules = fs.readdirSync(self.config.modulesDir);
             modules.forEach(function (moduleFileName) {
@@ -148,7 +154,18 @@ Moonboots.prototype.prepareBundle = function (cb) {
                 }
             });
         }
+
+        // handle browserify transforms if passed
+        if (self.config.browserify.transforms) {
+            self.config.browserify.transforms.forEach(function(tr) {
+                self.bundle.transform(tr);
+            });
+        }
+
+        // add main import
         self.bundle.add(self.config.main);
+
+        // run main bundle function
         self.bundle.bundle(self.config.browserify, function (err, js) {
             if (err) return cb(null, self._bundleError(err));
             self.result.source = self.result.libs + js;
@@ -165,6 +182,7 @@ Moonboots.prototype.prepareBundle = function (cb) {
     }
 };
 
+// Returns concatenated CSS source
 Moonboots.prototype.getCSS = function (minify) {
     var css = concatFiles(this.config.stylesheets);
     return minify ? cssmin(css) : css;
@@ -180,11 +198,12 @@ Moonboots.prototype._ensureReady = function (cb) {
     }
 };
 
+// Helper to determine if minification should happen
 Moonboots.prototype._shouldMinify = function () {
     return this.config.minify && !this.config.developmentMode;
 };
 
-// returns request handler to serve html
+// Returns request handler to serve html
 Moonboots.prototype.html = function () {
     var self = this;
     return function (req, res) {
@@ -194,7 +213,7 @@ Moonboots.prototype.html = function () {
     };
 };
 
-// returns request handler for serving JS file
+// Returns request handler for serving JS file
 // minified, if appropriate.
 Moonboots.prototype.js = function () {
     var self = this;
@@ -210,7 +229,7 @@ Moonboots.prototype.js = function () {
     };
 };
 
-// returns request handler for serving JS file
+// Returns request handler for serving JS file
 // minified, if appropriate.
 Moonboots.prototype.css = function () {
     var self = this;
@@ -224,6 +243,7 @@ Moonboots.prototype.css = function () {
     };
 };
 
+// Return css source code
 Moonboots.prototype.cssSource = function () {
     var cache = this.result;
     if (this.config.developmentMode) {
@@ -233,7 +253,7 @@ Moonboots.prototype.cssSource = function () {
     }
 };
 
-// returns the appropriate sourcecode based on settings
+// Returns the appropriate JS sourcecode based on settings
 Moonboots.prototype.sourceCode = function (cb) {
     var self = this;
     self._ensureReady(function () {
@@ -273,6 +293,8 @@ Moonboots.prototype.cssFileName = function () {
     }
 };
 
+// Main template fetcher. Will look for passed file and settings
+// or build default template.
 Moonboots.prototype.getTemplate = function () {
     var templateString = '';
     var prefix = this.config.resourcePrefix;
@@ -287,6 +309,7 @@ Moonboots.prototype.getTemplate = function () {
     return templateString;
 };
 
+// If no custom template is specified use a standard one.
 Moonboots.prototype.defaultTemplate = function () {
     var string = '<!DOCTYPE html>\n';
     var prefix = this.config.resourcePrefix;
@@ -297,6 +320,7 @@ Moonboots.prototype.defaultTemplate = function () {
     return this.result.html = string;
 };
 
+// Build kicks out your app HTML, JS, and CSS into a folder you specify.
 Moonboots.prototype.build = function (folder, callback) {
     var self = this;
     this.sourceCode(function (source) {
@@ -314,6 +338,7 @@ Moonboots.prototype.build = function (folder, callback) {
     });
 };
 
+// Main export
 module.exports = Moonboots;
 
 
