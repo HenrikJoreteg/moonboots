@@ -114,7 +114,7 @@ For a working example, run `node server.js` file and it'll server the `sample` d
 
 ## Changelog
 
--0.7.0
+*0.7.0*
 
   - Support for browserify transforms (thanks @latentflip)
   - Write syntax errors to browser in dev mode (thanks @lukekarrys)
