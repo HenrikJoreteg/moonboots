@@ -138,8 +138,15 @@ Moonboots.prototype = Object.create(EventEmitter.prototype, {
 // Shows stack in browser instead of just blowing up on the server
 Moonboots.prototype._bundleError = function (err) {
     if (!this.config.developmentMode) throw err;
-    this.hasError = true;
-    var trace = err.strack || err.message;
+    var trace;
+    if (err.stack) {
+        trace = err.stack;
+    } else if (typeof err === 'string') {
+        trace = err;
+    } else {
+        trace = JSON.stringify(err);
+    }
+    console.error(trace);
     this.result.error = 'document.write("<pre>' + trace.split('\n').join('<br>').replace(/"/g, '&quot;') + '</pre>");';
 };
 
@@ -254,10 +261,10 @@ Moonboots.prototype.css = function () {
 Moonboots.prototype._responseHandler = function (type) {
     var self = this;
     return function (req, res) {
-        self.hasError = false; // Reset errors on file requests
+        self.result.error = ''; // Reset errors on file requests
         self._ensureReady(function () {
             self._sendSource(type, function (err, source) {
-                if (self.hasError && type === 'js') {
+                if (self.result.error && type === 'js') {
                     // If we have an error (from CSS or JS)
                     // and this is our JS handler then return with only our error
                     // so we can display it in the browser
