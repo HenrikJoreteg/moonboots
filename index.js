@@ -123,6 +123,7 @@ function Moonboots(opts) {
             cb();
         }
     ], function (err) {
+        if (err) self._bundleError(err);
         self.ready = true;
         self.emit('ready');
     });
