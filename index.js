@@ -287,7 +287,7 @@ Moonboots.prototype._responseHandler = function (type) {
 // minified, if appropriate
 Moonboots.prototype._sendSource = function (type, cb) {
     var self = this,
-        result = self[type],
+        result = self.result[type],
         prepare = type === 'css' ? self.prepareCSSBundle : self.prepareBundle,
         config = self.config;
 
