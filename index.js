@@ -105,7 +105,6 @@ function Moonboots(opts) {
             csssha.update(self.result.css.source);
             cssCheckSum = self.result.css.checkSum = csssha.digest('hex').slice(0, 8);
 
-
             // store filenames
             self.result.css.fileName = self.config.cssFileName + '.' + cssCheckSum + '.css';
             self.result.css.minFileName = self.config.cssFileName + '.' + cssCheckSum + '.min.css';
