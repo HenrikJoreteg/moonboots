@@ -58,6 +58,7 @@ function Moonboots(opts) {
             min: '',
             checkSum: ''
         },
+        error: '',
         html: '',
         libs: ''
     };
@@ -84,10 +85,10 @@ function Moonboots(opts) {
 
     async.series([
         function (cb) {
-            self.prepareBundle(cb);
+            self.prepareCSSBundle(cb);
         },
         function (cb) {
-            self.prepareCSSBundle(cb);
+            self.prepareBundle(cb);
         },
         function (cb) {
             var jsCheckSum;
@@ -122,7 +123,6 @@ function Moonboots(opts) {
             cb();
         }
     ], function (err) {
-        if (err) self._bundleError(err);
         self.ready = true;
         self.emit('ready');
     });
@@ -138,9 +138,9 @@ Moonboots.prototype = Object.create(EventEmitter.prototype, {
 // Shows stack in browser instead of just blowing up on the server
 Moonboots.prototype._bundleError = function (err) {
     if (!this.config.developmentMode) throw err;
-    console.error(err.stack);
-    this.result.js.source = 'document.write("<pre>' + err.stack.split('\n').join('<br>').replace(/"/g, '&quot;') + '</pre>");';
-    return this.result.js.source;
+    this.hasError = true;
+    var trace = err.strack || err.message;
+    this.result.error = 'document.write("<pre>' + trace.split('\n').join('<br>').replace(/"/g, '&quot;') + '</pre>");';
 };
 
 // Returns contactenated external libraries
@@ -184,7 +184,7 @@ Moonboots.prototype.prepareBundle = function (cb) {
 
         // handle browserify transforms if passed
         if (self.config.browserify.transforms) {
-            self.config.browserify.transforms.forEach(function(tr) {
+            self.config.browserify.transforms.forEach(function (tr) {
                 self.bundle.transform(tr);
             });
         }
@@ -195,6 +195,7 @@ Moonboots.prototype.prepareBundle = function (cb) {
         // run main bundle function
         self.bundle.bundle(self.config.browserify, function (err, js) {
             if (err) return cb(err);
+
             self.result.js.source = self.result.libs + js;
             if (cb) cb(null, self.result.js.source);
         });
@@ -253,8 +254,15 @@ Moonboots.prototype.css = function () {
 Moonboots.prototype._responseHandler = function (type) {
     var self = this;
     return function (req, res) {
+        self.hasError = false; // Reset errors on file requests
         self._ensureReady(function () {
-            self._sendSource(type, function (source) {
+            self._sendSource(type, function (err, source) {
+                if (self.hasError && type === 'js') {
+                    // If we have an error (from CSS or JS)
+                    // and this is our JS handler then return with only our error
+                    // so we can display it in the browser
+                    source = self.result.error;
+                }
                 var contentType = 'text/' + (type === 'css' ? type : 'javascript') + '; charset=utf-8';
                 res.set('Content-Type', contentType);
                     // set our far-future cache headers if not in dev mode
@@ -272,18 +280,19 @@ Moonboots.prototype._responseHandler = function (type) {
 Moonboots.prototype._sendSource = function (type, cb) {
     var self = this,
         result = self[type],
-        prepare = type === 'css' ? self.prepareCSSBundle : self.prepareBundle;
+        prepare = type === 'css' ? self.prepareCSSBundle : self.prepareBundle,
         config = self.config;
 
     if (config.developmentMode) {
         prepare.call(self, function (err, source) {
-            if (err) return this._bundleError(err);
-            cb(source);
+            // If we have an error, then make it into a JS string
+            if (err) self._bundleError(err, type);
+            cb(err, source);
         });
     } else if (config.minify) {
-        cb(result.min);
+        cb(null, result.min);
     } else {
-        cb(result.source);
+        cb(null, result.source);
     }
 };
 
@@ -352,15 +361,15 @@ Moonboots.prototype.defaultTemplate = function () {
 
 // Build kicks out your app HTML, JS, and CSS into a folder you specify.
 Moonboots.prototype.build = function (folder, callback) {
-    var self = this;    
+    var self = this;
     async.parallel([
         function (cb) {
-            self.sourceCode(function (source) {
+            self.sourceCode(function (err, source) {
                 fs.writeFile(path.join(folder, self.jsFileName()), source, cb);
             });
         },
         function (cb) {
-            self.cssSource(function (source) {
+            self.cssSource(function (err, source) {
                 fs.writeFile(path.join(folder, self.cssFileName()), source, cb);
             });
         },
