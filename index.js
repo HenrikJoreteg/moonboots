@@ -157,7 +157,9 @@ Moonboots.prototype._concatExternalLibraries = function () {
 
 // Helper for preparing either JS or CSS bundle
 Moonboots.prototype._prepare = function (type, cb) {
-    var beforeName = type === 'css' ? 'beforeBuildCSS' : 'beforeBuildJS',
+    // Aliasing beforeBuild to beforeBuildJS
+    var beforeBuildJSName = this.config.beforeBuild ? 'beforeBuild' : 'beforeBuildJS',
+        beforeName = type === 'css' ? 'beforeBuildCSS' : beforeBuildJSName,
         before = this.config[beforeName];
 
     // if they pass a callback, wait for it

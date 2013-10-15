@@ -126,6 +126,11 @@ For a working example, run `node server.js` file and it'll server the `sample` d
 
 **1.0.0**
 
+  - Make CSS build/prepare steps follow same as JS
+  - Async css methods
+
+**0.7.0**
+
   - Support for browserify transforms (thanks @latentflip)
   - Write syntax errors to browser in dev mode (thanks @lukekarrys)
 
