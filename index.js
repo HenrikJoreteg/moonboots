@@ -23,33 +23,42 @@ function Moonboots(opts) {
     }
 
     this.config = {
+        server: '',
+        developmentMode: false,
+        libraries: [],
+        stylesheets: [],
+        templateFile: '',
         jsFileName: 'app',
         cssFileName: 'styles',
-        minify: true,
-        developmentMode: false,
-        modulesDir: '',
-        templateFile: '',
-        server: '',
         cachePeriod: 86400000 * 360, // one year,
-        // overridable browerify options
-        browserify: {},
+        browserify: {}, // overridable browerify options
+        modulesDir: '',
+        beforeBuildJS: function (cb) { cb(); },
+        beforeBuildCSS: function (cb) { cb(); },
         sourceMaps: false,
-        styles: [],
-        libraries: [],
-        beforeBuild: function (cb) {cb();},
-        resourcePrefix: '/'
+        resourcePrefix: '/',
+        minify: true,
     };
 
     // Were we'll store generated
     // source code, etc.
     this.result = {
-        source: '',
-        minSource: '',
-        css: '',
+        js: {
+            fileName: '',
+            minFileName: '',
+            source: '',
+            min: '',
+            checkSum: '',
+        },
+        css: {
+            fileName: '',
+            minFileName: '',
+            source: '',
+            min: '',
+            checkSum: ''
+        },
+        error: '',
         html: '',
-        jsFileName: '',
-        jsMinFileName: '',
-        checkSum: '',
         libs: ''
     };
 
@@ -71,30 +80,33 @@ function Moonboots(opts) {
         opts.server.get('/' + encodeURIComponent(this.config.cssFileName) + '*.css', this.css());
     }
 
-    this.concatExternalLibraries();
+    this._concatExternalLibraries();
 
     async.series([
+        function (cb) {
+            self.prepareCSSBundle(cb);
+        },
         function (cb) {
             self.prepareBundle(cb);
         },
         function (cb) {
             var jsCheckSum;
             // create our hash and build filenames accordingly
-            jssha.update(self.result.source);
-            jsCheckSum = self.result.jsCheckSum = jssha.digest('hex').slice(0, 8);
+            jssha.update(self.result.js.source);
+            jsCheckSum = self.result.js.checkSum = jssha.digest('hex').slice(0, 8);
 
             // store filenames
-            self.result.jsFileName = self.config.jsFileName + '.' + jsCheckSum + '.js';
-            self.result.jsMinFileName = self.config.jsFileName + '.' + jsCheckSum + '.min.js';
+            self.result.js.fileName = self.config.jsFileName + '.' + jsCheckSum + '.js';
+            self.result.js.minFileName = self.config.jsFileName + '.' + jsCheckSum + '.min.js';
 
             // css
             var cssCheckSum;
-            csssha.update(self.cssSource());
-            cssCheckSum = self.result.cssCheckSum = csssha.digest('hex').slice(0, 8);
+            csssha.update(self.result.css.source);
+            cssCheckSum = self.result.css.checkSum = csssha.digest('hex').slice(0, 8);
 
             // store filenames
-            self.result.cssFileName = self.config.cssFileName + '.' + cssCheckSum + '.css';
-            self.result.cssMinFileName = self.config.cssFileName + '.' + cssCheckSum + '.min.css';
+            self.result.css.fileName = self.config.cssFileName + '.' + cssCheckSum + '.css';
+            self.result.css.minFileName = self.config.cssFileName + '.' + cssCheckSum + '.min.css';
 
             // render our template
             self.result.html = self.getTemplate();
@@ -103,14 +115,13 @@ function Moonboots(opts) {
         },
         function (cb) {
             if (self._shouldMinify()) {
-                self.result.minSource = UglifyJS.minify(self.result.source, {fromString: true}).code;
+                self.result.js.min = UglifyJS.minify(self.result.js.source, {fromString: true}).code;
+                self.result.css.min = cssmin(self.result.css.source);
             }
             cb();
         }
     ], function (err) {
-        if (err) {
-            self._bundleError(err);
-        }
+        if (err) self._bundleError(err);
         self.ready = true;
         self.emit('ready');
     });
@@ -126,22 +137,46 @@ Moonboots.prototype = Object.create(EventEmitter.prototype, {
 // Shows stack in browser instead of just blowing up on the server
 Moonboots.prototype._bundleError = function (err) {
     if (!this.config.developmentMode) throw err;
-    console.error(err.stack);
-    this.result.source = 'document.write("<pre>' + err.stack.split('\n').join('<br>').replace(/"/g, '&quot;') + '</pre>");';
-    return this.result.source;
+    var trace;
+    if (err.stack) {
+        trace = err.stack;
+    } else if (typeof err === 'string') {
+        trace = err;
+    } else {
+        trace = JSON.stringify(err);
+    }
+    console.error(trace);
+    this.result.error = 'document.write("<pre>' + trace.split('\n').join('<br>').replace(/"/g, '&quot;') + '</pre>");';
 };
 
 // Returns contactenated external libraries
-Moonboots.prototype.concatExternalLibraries = function () {
+Moonboots.prototype._concatExternalLibraries = function () {
     var cache = this.result;
     return cache.libs || (cache.libs = concatFiles(this.config.libraries));
+};
+
+// Helper for preparing either JS or CSS bundle
+Moonboots.prototype._prepare = function (type, cb) {
+    // Aliasing beforeBuild to beforeBuildJS
+    var beforeBuildJSName = this.config.beforeBuild ? 'beforeBuild' : 'beforeBuildJS',
+        beforeName = type === 'css' ? 'beforeBuildCSS' : beforeBuildJSName,
+        before = this.config[beforeName];
+
+    // if they pass a callback, wait for it
+    if (before.length) {
+        before(cb);
+    } else {
+        before();
+        cb();
+    }
 };
 
 // Actually generate the JS bundle
 Moonboots.prototype.prepareBundle = function (cb) {
     var self = this;
+    this._prepare('js', function (err) {
+        if (err) return cb(err);
 
-    function bundle() {
         self.bundle = browserify();
 
         // handle module folder that you want to be able to require
@@ -157,7 +192,7 @@ Moonboots.prototype.prepareBundle = function (cb) {
 
         // handle browserify transforms if passed
         if (self.config.browserify.transforms) {
-            self.config.browserify.transforms.forEach(function(tr) {
+            self.config.browserify.transforms.forEach(function (tr) {
                 self.bundle.transform(tr);
             });
         }
@@ -167,25 +202,24 @@ Moonboots.prototype.prepareBundle = function (cb) {
 
         // run main bundle function
         self.bundle.bundle(self.config.browserify, function (err, js) {
-            if (err) return cb(null, self._bundleError(err));
-            self.result.source = self.result.libs + js;
-            if (cb) cb(null, self.result.source);
-        });
-    }
+            if (err) return cb(err);
 
-    // if they pass a callback, wait for it
-    if (this.config.beforeBuild.length) {
-        this.config.beforeBuild(bundle);
-    } else {
-        this.config.beforeBuild();
-        bundle();
-    }
+            self.result.js.source = self.result.libs + js;
+            if (cb) cb(null, self.result.js.source);
+        });
+    });
 };
 
-// Returns concatenated CSS source
-Moonboots.prototype.getCSS = function (minify) {
-    var css = concatFiles(this.config.stylesheets);
-    return minify ? cssmin(css) : css;
+// Actually prepare CSS bundle
+Moonboots.prototype.prepareCSSBundle = function (cb) {
+    var self = this;
+    this._prepare('css', function (err) {
+        if (err) return cb(err);
+
+        var css = concatFiles(self.config.stylesheets);
+        self.result.css.source = css;
+        cb(null, self.result.css.source);
+    });
 };
 
 // util for making sure files are built before trying to
@@ -216,81 +250,94 @@ Moonboots.prototype.html = function () {
 // Returns request handler for serving JS file
 // minified, if appropriate.
 Moonboots.prototype.js = function () {
+    return this._responseHandler('js');
+};
+
+// returns request handler for serving CSS file
+// minified, if appropriate.
+Moonboots.prototype.css = function () {
+    return this._responseHandler('css');
+};
+
+Moonboots.prototype._responseHandler = function (type) {
     var self = this;
     return function (req, res) {
-        self.sourceCode(function (source) {
-            res.set('Content-Type', 'text/javascript; charset=utf-8');
-            // set our far-future cache headers if not in dev mode
-            if (!self.config.developmentMode) {
-                res.set('Cache-Control', 'public, max-age=' + self.config.cachePeriod);
-            }
-            res.send(source);
+        self.result.error = ''; // Reset errors on file requests
+        self._ensureReady(function () {
+            self._sendSource(type, function (err, source) {
+                if (self.result.error && type === 'js') {
+                    // If we have an error (from CSS or JS)
+                    // and this is our JS handler then return with only our error
+                    // so we can display it in the browser
+                    source = self.result.error;
+                }
+                var contentType = 'text/' + (type === 'css' ? type : 'javascript') + '; charset=utf-8';
+                res.set('Content-Type', contentType);
+                    // set our far-future cache headers if not in dev mode
+                if (!self.config.developmentMode) {
+                    res.set('Cache-Control', 'public, max-age=' + self.config.cachePeriod);
+                }
+                res.send(source);
+            });
         });
     };
 };
 
-// Returns request handler for serving JS file
-// minified, if appropriate.
-Moonboots.prototype.css = function () {
-    var self = this;
-    return function (req, res) {
-        res.set('Content-Type', 'text/css; charset=utf-8');
-            // set our far-future cache headers if not in dev mode
-        if (!self.config.developmentMode) {
-            res.set('Cache-Control', 'public, max-age=' + self.config.cachePeriod);
-        }
-        res.send(self.cssSource());
-    };
-};
+// Returns with source code for CSS or JS
+// minified, if appropriate
+Moonboots.prototype._sendSource = function (type, cb) {
+    var self = this,
+        result = self.result[type],
+        prepare = type === 'css' ? self.prepareCSSBundle : self.prepareBundle,
+        config = self.config;
 
-// Return css source code
-Moonboots.prototype.cssSource = function () {
-    var cache = this.result;
-    if (this.config.developmentMode) {
-        return this.getCSS();
+    if (config.developmentMode) {
+        prepare.call(self, function (err, source) {
+            // If we have an error, then make it into a JS string
+            if (err) self._bundleError(err);
+            cb(err, source);
+        });
+    } else if (config.minify) {
+        cb(null, result.min);
     } else {
-        return cache.css || (cache.css = this.getCSS(this.config.minify));
+        cb(null, result.source);
     }
 };
 
-// Returns the appropriate JS sourcecode based on settings
+// Returns with the JS sourcecode
+// minified, if appropriate
 Moonboots.prototype.sourceCode = function (cb) {
-    var self = this;
-    self._ensureReady(function () {
-        var config = self.config;
-
-        if (config.developmentMode) {
-            self.prepareBundle(function (err, source) {
-                cb(source);
-            });
-        } else {
-            if (config.minify) {
-                cb(self.result.minSource);
-            } else {
-                cb(self.result.source);
-            }
-        }
-    });
+    this._sendSource('js', cb);
 };
 
-// returns the filename of the currently built file based on
+// Returns with the CSS sourcecode
+// minified, if appropriate
+Moonboots.prototype.cssSource = function (cb) {
+    this._sendSource('css', cb);
+};
+
+// returns the filename of the currently built CSS or JS file based on
+// development and minification settings.
+Moonboots.prototype._filename = function (type) {
+    var result = this.result[type],
+        configFileName = type === 'css' ? this.config.cssFileName : this.config.jsFileName;
+    if (this.config.developmentMode) {
+        return configFileName + '.' + type;
+    } else {
+        return this.config.minify ? result.minFileName : result.fileName;
+    }
+};
+
+// returns the filename of the currently built JS file based on
 // development and minification settings.
 Moonboots.prototype.jsFileName = function () {
-    if (this.config.developmentMode) {
-        return this.config.jsFileName + '.js';
-    } else {
-        return this.config.minify ? this.result.jsMinFileName : this.result.jsFileName;
-    }
+    return this._filename('js');
 };
 
-// returns the filename of the currently built file based on
+// returns the filename of the currently built CSS file based on
 // development and minification settings.
 Moonboots.prototype.cssFileName = function () {
-    if (this.config.developmentMode) {
-        return this.config.cssFileName + '.css';
-    } else {
-        return this.config.minify ? this.result.cssMinFileName : this.result.cssFileName;
-    }
+    return this._filename('css');
 };
 
 // Main template fetcher. Will look for passed file and settings
@@ -304,16 +351,16 @@ Moonboots.prototype.getTemplate = function () {
             .replace('#{jsFileName}', prefix + this.jsFileName())
             .replace('#{cssFileName}', prefix + this.cssFileName());
     } else {
-        templateString = this.defaultTemplate();
+        templateString = this._defaultTemplate();
     }
     return templateString;
 };
 
 // If no custom template is specified use a standard one.
-Moonboots.prototype.defaultTemplate = function () {
+Moonboots.prototype._defaultTemplate = function () {
     var string = '<!DOCTYPE html>\n';
     var prefix = this.config.resourcePrefix;
-    if (this.getCSS()) {
+    if (this.result.css.source) {
         string += linkTag(prefix + this.cssFileName());
     }
     string += scriptTag(prefix + this.jsFileName());
@@ -323,19 +370,23 @@ Moonboots.prototype.defaultTemplate = function () {
 // Build kicks out your app HTML, JS, and CSS into a folder you specify.
 Moonboots.prototype.build = function (folder, callback) {
     var self = this;
-    this.sourceCode(function (source) {
-        async.parallel([
-            function (cb) {
+    async.parallel([
+        function (cb) {
+            self.sourceCode(function (err, source) {
+                if (err) return cb(err);
                 fs.writeFile(path.join(folder, self.jsFileName()), source, cb);
-            },
-            function (cb) {
-                fs.writeFile(path.join(folder, self.cssFileName()), self.cssSource(), cb);
-            },
-            function (cb) {
-                fs.writeFile(path.join(folder, 'index.html'), self.getTemplate(), cb);
-            }
-        ], callback);
-    });
+            });
+        },
+        function (cb) {
+            self.cssSource(function (err, source) {
+                if (err) return cb(err);
+                fs.writeFile(path.join(folder, self.cssFileName()), source, cb);
+            });
+        },
+        function (cb) {
+            fs.writeFile(path.join(folder, 'index.html'), self.getTemplate(), cb);
+        }
+    ], callback);
 };
 
 // Non-express servers need config items like cachePeriod
