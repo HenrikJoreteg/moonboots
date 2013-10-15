@@ -292,7 +292,7 @@ Moonboots.prototype._sendSource = function (type, cb) {
     if (config.developmentMode) {
         prepare.call(self, function (err, source) {
             // If we have an error, then make it into a JS string
-            if (err) self._bundleError(err, type);
+            if (err) self._bundleError(err);
             cb(err, source);
         });
     } else if (config.minify) {
@@ -371,11 +371,13 @@ Moonboots.prototype.build = function (folder, callback) {
     async.parallel([
         function (cb) {
             self.sourceCode(function (err, source) {
+                if (err) return cb(err);
                 fs.writeFile(path.join(folder, self.jsFileName()), source, cb);
             });
         },
         function (cb) {
             self.cssSource(function (err, source) {
+                if (err) return cb(err);
                 fs.writeFile(path.join(folder, self.cssFileName()), source, cb);
             });
         },
