@@ -401,9 +401,9 @@ Moonboots.prototype.getResult = function(i, cb) {
     var self = this;
     self._ensureReady(function () {
       if (typeof i === 'string') {
-        return cb(self.result[i]);
+        return cb(null, self.result[i]);
       }
-      return cb();
+      return cb(new Error('not found'));
     });
 };
 
