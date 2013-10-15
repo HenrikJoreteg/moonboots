@@ -338,6 +338,24 @@ Moonboots.prototype.build = function (folder, callback) {
     });
 };
 
+// Non-express servers need config items like cachePeriod
+Moonboots.prototype.getConfig = function (i) {
+    var self = this;
+    if (typeof i === 'string') {
+        return this.config[i];
+    }
+};
+
+Moonboots.prototype.getResult = function(i, cb) {
+    var self = this;
+    self._ensureReady(function () {
+      if (typeof i === 'string') {
+        return cb(self.result[i]);
+      }
+      return cb();
+    });
+};
+
 // Main export
 module.exports = Moonboots;
 

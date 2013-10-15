@@ -1,7 +1,7 @@
 {
     "name": "moonboots",
     "description": "A set of tools and conventions for building/serving clientside apps with node.js",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "dependencies": {
         "async": "0.2.9",
         "uglify-js": "2.4.0",
