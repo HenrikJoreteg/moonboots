@@ -304,9 +304,14 @@ Moonboots.prototype._sendSource = function (type, cb) {
     }
 };
 
+//Legacy method to get JS sourcecode
+Moonboots.prototype.sourceCode = function (cb) {
+    this.jsSource(cb);
+};
+
 // Returns with the JS sourcecode
 // minified, if appropriate
-Moonboots.prototype.sourceCode = function (cb) {
+Moonboots.prototype.jsSource = function (cb) {
     this._sendSource('js', cb);
 };
 
