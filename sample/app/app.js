@@ -6,7 +6,7 @@ module.exports = {
         window.app = this;
 
         $(function () {
-            $('body').html('Woo! View source to see what rendered me.')
+            $('body').html('Woo! View source to see what rendered me.');
         });
     }
 };
