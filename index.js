@@ -23,22 +23,21 @@ function Moonboots(opts) {
     }
 
     this.config = {
+        server: '',
+        developmentMode: false,
+        libraries: [],
+        stylesheets: [],
+        templateFile: '',
         jsFileName: 'app',
         cssFileName: 'styles',
-        minify: true,
-        developmentMode: false,
-        modulesDir: '',
-        templateFile: '',
-        server: '',
         cachePeriod: 86400000 * 360, // one year,
-        // overridable browerify options
-        browserify: {},
-        sourceMaps: false,
-        stylesheets: [],
-        libraries: [],
+        browserify: {}, // overridable browerify options
+        modulesDir: '',
         beforeBuildJS: function (cb) { cb(); },
         beforeBuildCSS: function (cb) { cb(); },
-        resourcePrefix: '/'
+        sourceMaps: false,
+        resourcePrefix: '/',
+        minify: true,
     };
 
     // Were we'll store generated
@@ -81,7 +80,7 @@ function Moonboots(opts) {
         opts.server.get('/' + encodeURIComponent(this.config.cssFileName) + '*.css', this.css());
     }
 
-    this.concatExternalLibraries();
+    this._concatExternalLibraries();
 
     async.series([
         function (cb) {
@@ -151,7 +150,7 @@ Moonboots.prototype._bundleError = function (err) {
 };
 
 // Returns contactenated external libraries
-Moonboots.prototype.concatExternalLibraries = function () {
+Moonboots.prototype._concatExternalLibraries = function () {
     var cache = this.result;
     return cache.libs || (cache.libs = concatFiles(this.config.libraries));
 };
@@ -350,13 +349,13 @@ Moonboots.prototype.getTemplate = function () {
             .replace('#{jsFileName}', prefix + this.jsFileName())
             .replace('#{cssFileName}', prefix + this.cssFileName());
     } else {
-        templateString = this.defaultTemplate();
+        templateString = this._defaultTemplate();
     }
     return templateString;
 };
 
 // If no custom template is specified use a standard one.
-Moonboots.prototype.defaultTemplate = function () {
+Moonboots.prototype._defaultTemplate = function () {
     var string = '<!DOCTYPE html>\n';
     var prefix = this.config.resourcePrefix;
     if (this.result.css.source) {
