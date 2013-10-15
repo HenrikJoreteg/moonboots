@@ -390,20 +390,21 @@ Moonboots.prototype.build = function (folder, callback) {
 };
 
 // Non-express servers need config items like cachePeriod
-Moonboots.prototype.getConfig = function (i) {
+Moonboots.prototype.getConfig = function (key) {
     var self = this;
-    if (typeof i === 'string') {
-        return this.config[i];
+    if (typeof key === 'string') {
+        return this.config[key];
     }
+    return this.config;
 };
 
-Moonboots.prototype.getResult = function(i, cb) {
+Moonboots.prototype.getResult = function(key, cb) {
     var self = this;
     self._ensureReady(function () {
-      if (typeof i === 'string') {
-        return cb(null, self.result[i]);
+      if (typeof key === 'string') {
+        return cb(null, self.result[key]);
       }
-      return cb(new Error('not found'));
+      return cb(null, self.result);
     });
 };
 
