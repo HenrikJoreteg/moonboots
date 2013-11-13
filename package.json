@@ -17,6 +17,7 @@
         "async": "0.2.9",
         "uglify-js": "2.4.0",
         "browserify": "2.20.1",
+        "bundle-metadata": "~1.0.0",
         "cssmin": "0.4.1"
     },
     "devDependencies": {
