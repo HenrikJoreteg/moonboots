@@ -163,7 +163,7 @@ Moonboots.prototype._bundleError = function (err) {
         trace = JSON.stringify(err);
     }
     console.error(trace);
-    this.result.error = 'document.write("<pre>' + trace.split('\n').join('<br>').replace(/"/g, '&quot;') + '</pre>");';
+    this.result.error = 'document.write("<pre style=\'background:#ECFOF2; color:#444; padding: 20px\' >' + trace.split('\n').join('<br>').replace(/"/g, '&quot;') + '</pre>");';
 };
 
 // Returns contactenated external libraries
