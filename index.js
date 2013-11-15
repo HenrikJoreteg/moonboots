@@ -82,46 +82,63 @@ function Moonboots(opts) {
 
     this._concatExternalLibraries();
 
-    async.series([
+    async.parallel([
+        // CSS
         function (cb) {
-            self.prepareCSSBundle(cb);
+            async.series([
+                function (_cb) {
+                    self.prepareCSSBundle(_cb);
+                },
+                function (_cb) {
+                    var cssCheckSum;
+                    // create our hash and build filenames accordingly
+                    csssha.update(self.result.css.source);
+                    cssCheckSum = self.result.css.checkSum = csssha.digest('hex').slice(0, 8);
+
+                    // store filenames
+                    self.result.css.fileName = self.config.cssFileName + '.' + cssCheckSum + '.css';
+                    self.result.css.minFileName = self.config.cssFileName + '.' + cssCheckSum + '.min.css';
+
+                    if (self._shouldMinify()) {
+                        self.result.css.min = cssmin(self.result.css.source);
+                    }
+
+                    _cb();
+                }
+            ], function (err) {
+                if (err) self._bundleError(err);
+                cb();
+            });
         },
+        // JS
         function (cb) {
-            self.prepareBundle(cb);
-        },
-        function (cb) {
-            var jsCheckSum;
-            // create our hash and build filenames accordingly
-            jssha.update(self.result.js.source);
-            jsCheckSum = self.result.js.checkSum = jssha.digest('hex').slice(0, 8);
+            async.series([
+                function (_cb) {
+                    self.prepareBundle(_cb);
+                },
+                function (_cb) {
+                    var jsCheckSum;
+                    // create our hash and build filenames accordingly
+                    jssha.update(self.result.js.source);
+                    jsCheckSum = self.result.js.checkSum = jssha.digest('hex').slice(0, 8);
 
-            // store filenames
-            self.result.js.fileName = self.config.jsFileName + '.' + jsCheckSum + '.js';
-            self.result.js.minFileName = self.config.jsFileName + '.' + jsCheckSum + '.min.js';
+                    // store filenames
+                    self.result.js.fileName = self.config.jsFileName + '.' + jsCheckSum + '.js';
+                    self.result.js.minFileName = self.config.jsFileName + '.' + jsCheckSum + '.min.js';
 
-            // css
-            var cssCheckSum;
-            csssha.update(self.result.css.source);
-            cssCheckSum = self.result.css.checkSum = csssha.digest('hex').slice(0, 8);
+                    if (self._shouldMinify()) {
+                        self.result.js.min = UglifyJS.minify(self.result.js.source, {fromString: true}).code;
+                    }
 
-            // store filenames
-            self.result.css.fileName = self.config.cssFileName + '.' + cssCheckSum + '.css';
-            self.result.css.minFileName = self.config.cssFileName + '.' + cssCheckSum + '.min.css';
-
-            // render our template
-            self.result.html = self.getTemplate();
-
-            cb();
-        },
-        function (cb) {
-            if (self._shouldMinify()) {
-                self.result.js.min = UglifyJS.minify(self.result.js.source, {fromString: true}).code;
-                self.result.css.min = cssmin(self.result.css.source);
-            }
-            cb();
+                    _cb();
+                }
+            ], function (err) {
+                if (err) self._bundleError(err);
+                cb();
+            });
         }
-    ], function (err) {
-        if (err) self._bundleError(err);
+    ], function () {
+        self.result.html = self.getTemplate();
         self.ready = true;
         self.emit('ready');
     });
