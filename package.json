@@ -2,6 +2,10 @@
     "name": "moonboots",
     "description": "A set of tools and conventions for building/serving clientside apps with node.js",
     "author": "Henrik Joreteg <henrik@andyet.net>",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:HenrikJoreteg/moonboots.git"
+    },
     "contributors": [
         {
             "name": "Philip Roberts",
