@@ -11,13 +11,18 @@ var clientApp = new Moonboots({
         __dirname + '/sample/libraries/jquery.js'
     ],
     stylesheets: [
-        __dirname + '/sample/stylesheets/style.css'
+        __dirname + '/sample/stylesheets/style.css',
+        __dirname + '/sample/stylesheets/app.css'
     ],
     beforeBuildCSS: function () {
-        console.log('Building CSS');
+        console.log('Before build CSS');
     },
-    beforeBuildJS: function () {
-        console.log('Building JS');
+    beforeBuildJS: function (cb) {
+        // Simulating an async build step
+        setTimeout(function () {
+            console.log('Before build JS');
+            cb();
+        }, 2000);
     },
     server: app
 });
