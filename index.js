@@ -392,23 +392,25 @@ Moonboots.prototype._defaultTemplate = function () {
 // Build kicks out your app HTML, JS, and CSS into a folder you specify.
 Moonboots.prototype.build = function (folder, callback) {
     var self = this;
-    async.parallel([
-        function (cb) {
-            self.sourceCode(function (err, source) {
-                if (err) return cb(err);
-                fs.writeFile(path.join(folder, self.jsFileName()), source, cb);
-            });
-        },
-        function (cb) {
-            self.cssSource(function (err, source) {
-                if (err) return cb(err);
-                fs.writeFile(path.join(folder, self.cssFileName()), source, cb);
-            });
-        },
-        function (cb) {
-            fs.writeFile(path.join(folder, 'index.html'), self.getTemplate(), cb);
-        }
-    ], callback);
+    self._ensureReady(function () {
+        async.parallel([
+            function (cb) {
+                self.sourceCode(function (err, source) {
+                    if (err) return cb(err);
+                    fs.writeFile(path.join(folder, self.jsFileName()), source, cb);
+                });
+            },
+            function (cb) {
+                self.cssSource(function (err, source) {
+                    if (err) return cb(err);
+                    fs.writeFile(path.join(folder, self.cssFileName()), source, cb);
+                });
+            },
+            function (cb) {
+                fs.writeFile(path.join(folder, 'index.html'), self.getTemplate(), cb);
+            }
+        ], callback);
+    });
 };
 
 // Non-express servers need config items like cachePeriod
@@ -423,10 +425,10 @@ Moonboots.prototype.getConfig = function (key) {
 Moonboots.prototype.getResult = function(key, cb) {
     var self = this;
     self._ensureReady(function () {
-      if (typeof key === 'string') {
-        return cb(null, self.result[key]);
-      }
-      return cb(null, self.result);
+        if (typeof key === 'string') {
+            return cb(null, self.result[key]);
+        }
+        return cb(null, self.result);
     });
 };
 

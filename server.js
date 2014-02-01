@@ -27,6 +27,17 @@ var clientApp = new Moonboots({
     server: app
 });
 
+// We can choose to not run a server, but instead just
+// write the files to a directory. If we ran the script
+// with `node server.js --build` then our files will be
+// buil5 and saved to ./build with developmentMode
+// turned off and the script will exit
+if (!!process.argv.join(' ').indexOf(' --build')) {
+    clientApp.config.developmentMode = false;
+    clientApp.build(__dirname + '/sample-build');
+    return;
+}
+
 // if we want to prime the user's cache with the
 // application files. The login page is a great place
 // to do this. We can retrieve the name of the
