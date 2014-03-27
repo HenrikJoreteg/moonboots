@@ -16,7 +16,7 @@
             "email": "luke@andyet.net"
         }
     ],
-    "version": "1.2.2",
+    "version": "1.2.3",
     "dependencies": {
         "async": "0.2.9",
         "uglify-js": "2.4.0",

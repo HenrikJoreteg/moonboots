@@ -124,6 +124,10 @@ For a working example, run `node server.js` file and it'll server the `sample` d
 
 ## Changelog
 
+**1.2.3**
+
+  - Make bundles have a consistent hash
+
 **1.0.0**
 
   - Make CSS build/prepare steps follow same as JS
