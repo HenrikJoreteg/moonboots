@@ -6,6 +6,7 @@ var express = require('express'),
 var clientApp = new Moonboots({
     main: __dirname + '/sample/app/app.js',
     templateFile: __dirname + '/sample/app.html',
+    modulesDir: __dirname + '/sample/modules',
     developmentMode: true,
     libraries: [
         __dirname + '/sample/libraries/jquery.js'

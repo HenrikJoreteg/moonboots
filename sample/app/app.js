@@ -1,5 +1,5 @@
 var Backbone = require('backbone');
-var templates = require('./templates');
+var templates = require('templates');
 
 module.exports = {
     launch: function () {
