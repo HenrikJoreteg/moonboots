@@ -6,7 +6,7 @@ var browserify = require('browserify');
 var UglifyJS = require('uglify-js');
 var cssmin = require('cssmin');
 var path = require('path');
-var mdeps = require('./node_modules/browserify/node_modules/module-deps');
+var mdeps = require('module-deps');
 var meta = require('bundle-metadata');
 
 
