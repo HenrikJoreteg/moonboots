@@ -6,6 +6,8 @@ var browserify = require('browserify');
 var UglifyJS = require('uglify-js');
 var cssmin = require('cssmin');
 var path = require('path');
+var mdeps = require('module-deps');
+var meta = require('bundle-metadata');
 
 
 function Moonboots(opts) {
@@ -46,6 +48,7 @@ function Moonboots(opts) {
             source: '',
             min: '',
             checkSum: '',
+            bundleHash: {}
         },
         css: {
             fileName: '',
@@ -130,7 +133,7 @@ Moonboots.prototype.setup = function () {
                     var jsCheckSum;
                     var jssha = crypto.createHash('sha1'); // we'll calculate this to know whether to change the filename
                     // create our hash and build filenames accordingly
-                    jssha.update(self.result.js.source);
+                    jssha.update(self.result.libs + self.result.js.bundleHash);
                     jsCheckSum = self.result.js.checkSum = jssha.digest('hex').slice(0, 8);
 
                     // store filenames
@@ -198,7 +201,12 @@ Moonboots.prototype.prepareBundle = function (cb) {
     this._prepare('js', function (err) {
         if (err) return cb(err);
 
+        // Create two bundles:
+        // bundle is to get the actual js source from a browserify bundle
+        // hashBundle is to create a copy of our other bundle (with the same requires and transforms)
+        // so we can use its resolve fn to get a predictable hash from module-deps
         self.bundle = browserify();
+        self.hashBundle = browserify();
 
         // handle module folder that you want to be able to require
         // without relative paths.
@@ -206,7 +214,12 @@ Moonboots.prototype.prepareBundle = function (cb) {
             var modules = fs.readdirSync(self.config.modulesDir);
             modules.forEach(function (moduleFileName) {
                 if (path.extname(moduleFileName) === '.js') {
-                    self.bundle.require(self.config.modulesDir + '/' + moduleFileName, {expose: path.basename(moduleFileName, '.js')});
+                    var args = [
+                        self.config.modulesDir + '/' + moduleFileName,
+                        {expose: path.basename(moduleFileName, '.js')}
+                    ];
+                    self.bundle.require.apply(self.bundle, args);
+                    self.hashBundle.require.apply(self.hashBundle, args);
                 }
             });
         }
@@ -215,17 +228,34 @@ Moonboots.prototype.prepareBundle = function (cb) {
         if (self.config.browserify.transforms) {
             self.config.browserify.transforms.forEach(function (tr) {
                 self.bundle.transform(tr);
+                self.hashBundle.transform(tr);
             });
         }
 
         // add main import
         self.bundle.add(self.config.main);
 
-        // run main bundle function
-        self.bundle.bundle(self.config.browserify, function (err, js) {
+        async.parallel([
+            function (_cb) {
+                // Get a predictable hash for the bundle
+                mdeps(self.config.main, {
+                    resolve: self.hashBundle._resolve.bind(self.hashBundle)
+                })
+                .pipe(meta().on('hash', function (hash) {
+                    self.result.js.bundleHash = hash;
+                    _cb();
+                }));
+            },
+            function (_cb) {
+                // run main bundle function
+                self.bundle.bundle(self.config.browserify, function (err, js) {
+                    if (err) return _cb(err);
+                    self.result.js.source = self.result.libs + js;
+                    _cb();
+                });
+            }
+        ], function (err) {
             if (err) return cb(err);
-
-            self.result.js.source = self.result.libs + js;
             if (cb) cb(null, self.result.js.source);
         });
     });
@@ -396,23 +426,25 @@ Moonboots.prototype._defaultTemplate = function () {
 // Build kicks out your app HTML, JS, and CSS into a folder you specify.
 Moonboots.prototype.build = function (folder, callback) {
     var self = this;
-    async.parallel([
-        function (cb) {
-            self.sourceCode(function (err, source) {
-                if (err) return cb(err);
-                fs.writeFile(path.join(folder, self.jsFileName()), source, cb);
-            });
-        },
-        function (cb) {
-            self.cssSource(function (err, source) {
-                if (err) return cb(err);
-                fs.writeFile(path.join(folder, self.cssFileName()), source, cb);
-            });
-        },
-        function (cb) {
-            fs.writeFile(path.join(folder, 'index.html'), self.getTemplate(), cb);
-        }
-    ], callback);
+    self._ensureReady(function () {
+        async.parallel([
+            function (cb) {
+                self.sourceCode(function (err, source) {
+                    if (err) return cb(err);
+                    fs.writeFile(path.join(folder, self.jsFileName()), source, cb);
+                });
+            },
+            function (cb) {
+                self.cssSource(function (err, source) {
+                    if (err) return cb(err);
+                    fs.writeFile(path.join(folder, self.cssFileName()), source, cb);
+                });
+            },
+            function (cb) {
+                fs.writeFile(path.join(folder, 'index.html'), self.getTemplate(), cb);
+            }
+        ], callback);
+    });
 };
 
 // Non-express servers need config items like cachePeriod
@@ -427,10 +459,10 @@ Moonboots.prototype.getConfig = function (key) {
 Moonboots.prototype.getResult = function(key, cb) {
     var self = this;
     self._ensureReady(function () {
-      if (typeof key === 'string') {
-        return cb(null, self.result[key]);
-      }
-      return cb(null, self.result);
+        if (typeof key === 'string') {
+            return cb(null, self.result[key]);
+        }
+        return cb(null, self.result);
     });
 };
 

@@ -6,21 +6,38 @@ var express = require('express'),
 var clientApp = new Moonboots({
     main: __dirname + '/sample/app/app.js',
     templateFile: __dirname + '/sample/app.html',
+    modulesDir: __dirname + '/sample/modules',
     developmentMode: true,
     libraries: [
         __dirname + '/sample/libraries/jquery.js'
     ],
     stylesheets: [
-        __dirname + '/sample/stylesheets/style.css'
+        __dirname + '/sample/stylesheets/style.css',
+        __dirname + '/sample/stylesheets/app.css'
     ],
     beforeBuildCSS: function () {
-        console.log('Building CSS');
+        console.log('Before build CSS');
     },
-    beforeBuildJS: function () {
-        console.log('Building JS');
+    beforeBuildJS: function (cb) {
+        // Simulating an async build step
+        setTimeout(function () {
+            console.log('Before build JS');
+            cb();
+        }, 2000);
     },
     server: app
 });
+
+// We can choose to not run a server, but instead just
+// write the files to a directory. If we ran the script
+// with `node server.js --build` then our files will be
+// buil5 and saved to ./build with developmentMode
+// turned off and the script will exit
+if (!!process.argv.join(' ').indexOf(' --build')) {
+    clientApp.config.developmentMode = false;
+    clientApp.build(__dirname + '/sample-build');
+    return;
+}
 
 // if we want to prime the user's cache with the
 // application files. The login page is a great place

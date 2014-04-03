@@ -79,7 +79,7 @@ Available options that can be passed to Moonboots:
 - `server` (optional, connect or express app, default: null) - Highly recommend using this. This way moonboots worries about serving your JS for you in the appropriate format given your other settings.
 `developmentMode` (optional, boolean, default: false) - In development mode the JS is recompiled each time it's requested by the browser and it's not minified. Very important this isn't left this way for production. 
 - `libraries` (optional, array of file paths, default: []) - An array of paths of JS files to concatenate and include before any CommonJS bundled code. This is useful for stuff like jQuery and jQuery plugins. Note that they will be included in the order specified. So if you're including a jQuery plugin, you'd better be sure that jQuery is listed first. 
-- `stylehsheets` (optional, array of file paths, default: []) - An array of CSS files to concatenate
+- `stylesheets` (optional, array of file paths, default: []) - An array of CSS files to concatenate
 - `jsFileName` (optional, string, default: app) - the name of the JS file that will be built
 - `cssFileName` (optional, string, default: styles) - the name of the CSS file that will be built
 - `templateFile` (optinal, filepath, default: bundled template): __dirname + '/sample/app.html',
@@ -123,6 +123,10 @@ Sourcemaps let you send the actual code to the browser along with a mapping to t
 For a working example, run `node server.js` file and it'll server the `sample` directory.
 
 ## Changelog
+
+**1.2.3**
+
+  - Make bundles have a consistent hash
 
 **1.0.0**
 
