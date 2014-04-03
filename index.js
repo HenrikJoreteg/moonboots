@@ -10,7 +10,6 @@ var path = require('path');
 
 function Moonboots(opts) {
     var self = this;
-    // we'll calculate this to know whether to change the filename
     var item;
 
     // inherit
@@ -101,7 +100,7 @@ Moonboots.prototype.setup = function () {
                 },
                 function (_cb) {
                     var cssCheckSum;
-                    var csssha = crypto.createHash('sha1');
+                    var csssha = crypto.createHash('sha1'); // we'll calculate this to know whether to change the filename
                     // create our hash and build filenames accordingly
                     csssha.update(self.result.css.source);
                     cssCheckSum = self.result.css.checkSum = csssha.digest('hex').slice(0, 8);
@@ -129,7 +128,7 @@ Moonboots.prototype.setup = function () {
                 },
                 function (_cb) {
                     var jsCheckSum;
-                    var jssha = crypto.createHash('sha1');
+                    var jssha = crypto.createHash('sha1'); // we'll calculate this to know whether to change the filename
                     // create our hash and build filenames accordingly
                     jssha.update(self.result.js.source);
                     jsCheckSum = self.result.js.checkSum = jssha.digest('hex').slice(0, 8);
