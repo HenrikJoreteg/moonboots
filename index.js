@@ -12,9 +12,6 @@ var meta = require('bundle-metadata');
 
 function Moonboots(opts) {
     var self = this;
-    // we'll calculate this to know whether to change the filename
-    var jssha = crypto.createHash('sha1');
-    var csssha = crypto.createHash('sha1');
     var item;
 
     // inherit
@@ -83,6 +80,18 @@ function Moonboots(opts) {
         opts.server.get('/' + encodeURIComponent(this.config.cssFileName) + '*.css', this.css());
     }
 
+    process.nextTick(this.setup.bind(this));
+}
+
+// Inherit from event emitter
+Moonboots.prototype = Object.create(EventEmitter.prototype, {
+    constructor: {
+        value: Moonboots
+    }
+});
+
+Moonboots.prototype.setup = function () {
+    var self = this;
     this._concatExternalLibraries();
 
     async.parallel([
@@ -94,6 +103,7 @@ function Moonboots(opts) {
                 },
                 function (_cb) {
                     var cssCheckSum;
+                    var csssha = crypto.createHash('sha1'); // we'll calculate this to know whether to change the filename
                     // create our hash and build filenames accordingly
                     csssha.update(self.result.css.source);
                     cssCheckSum = self.result.css.checkSum = csssha.digest('hex').slice(0, 8);
@@ -121,6 +131,7 @@ function Moonboots(opts) {
                 },
                 function (_cb) {
                     var jsCheckSum;
+                    var jssha = crypto.createHash('sha1'); // we'll calculate this to know whether to change the filename
                     // create our hash and build filenames accordingly
                     jssha.update(self.result.libs + self.result.js.bundleHash);
                     jsCheckSum = self.result.js.checkSum = jssha.digest('hex').slice(0, 8);
@@ -145,14 +156,7 @@ function Moonboots(opts) {
         self.ready = true;
         self.emit('ready');
     });
-}
-
-// Inherit from event emitter
-Moonboots.prototype = Object.create(EventEmitter.prototype, {
-    constructor: {
-        value: Moonboots
-    }
-});
+};
 
 // Shows stack in browser instead of just blowing up on the server
 Moonboots.prototype._bundleError = function (err) {
