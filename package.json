@@ -33,10 +33,6 @@
     "through": "^2.3.4"
   },
   "homepage": "https://github.com/henrikjoreteg/moonboots",
-  "jshintConfig": {
-    "boss": true,
-    "indent": 4
-  },
   "keywords": [
     "commonjs",
     "clientside",

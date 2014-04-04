@@ -46,7 +46,7 @@ Lab.experiment('css with no minify', function () {
         done();
     });
     Lab.test('content', function (done) {
-        moonboots.cssSource( function(err, css) {
+        moonboots.cssSource(function (err, css) {
             Lab.expect(css, 'css source').to.equal('body {background: #ccc;}\n');
         });
         done();
