@@ -40,16 +40,9 @@ function Moonboots(opts) {
 
     // Were we'll store generated source code, etc.
     this.result = {
-        js: {
-            fileName: '',
-            source: '',
-            min: ''
-        },
-        css: {
-            fileName: '',
-            source: '',
-            min: ''
-        }
+        js: {},
+        css: {},
+        html: {}
     };
 
     //We'll re-add extensions later
@@ -147,9 +140,15 @@ Moonboots.prototype.build = function () {
         }
     ], function (err) {
         if (err) { throw err; }
-        /*
-        self.result.html = self.getTemplate();
-        */
+        self.result.html.source = '<!DOCTYPE html>\n';
+        if (self.config.stylesheets.length > 0) {
+            self.result.html.source += linkTag(self.config.resourcePrefix + self.cssFileName());
+        }
+        self.result.html.source += scriptTag(self.config.resourcePrefix + self.jsFileName());
+        self.result.html.context = {
+            jsFileName: self.jsFileName(),
+            cssFileName: self.cssFileName()
+        };
         self.emit('ready');
     });
 };
@@ -214,31 +213,8 @@ Moonboots.prototype.bundleJS = function (done) {
     ], done);
 };
 
-// Returns with source code for CSS or JS
-// minified, if appropriate
-/*
-Moonboots.prototype._sendSource = function (type, cb) {
-    var self = this,
-        result = self.result[type],
-        prepare = type === 'css' ? self.prepareCSSBundle : self.prepareBundle,
-        config = self.config;
-
-    if (config.developmentMode) {
-        prepare.call(self, function (err, source) {
-            // If we have an error, then make it into a JS string
-            if (err) self._bundleError(err);
-            cb(err, source);
-        });
-    } else if (config.minify) {
-        cb(null, result.min);
-    } else {
-        cb(null, result.source);
-    }
-};
-*/
-
 /*Main moonboots functions*/
-Moonboots.prototype.jsSource = function (cb) {
+Moonboots.prototype.jsSource = function () {
     return this.result.js.source;
 };
 
@@ -254,62 +230,13 @@ Moonboots.prototype.cssFileName = function () {
     return this.result.css.fileName;
 };
 
-// Main template fetcher. Will look for passed file and settings
-// or build default template.
-/*
-Moonboots.prototype.getTemplate = function () {
-    var templateString = '';
-    var prefix = this.config.resourcePrefix;
-    if (this.config.templateFile) {
-        templateString = fs.readFileSync(this.config.templateFile, 'utf-8');
-        templateString = templateString
-            .replace('#{jsFileName}', prefix + this.jsFileName())
-            .replace('#{cssFileName}', prefix + this.cssFileName());
-    } else {
-        templateString = this._defaultTemplate();
-    }
-    return templateString;
+Moonboots.prototype.htmlContext = function () {
+    return this.result.html.context;
 };
-*/
 
-// If no custom template is specified use a standard one.
-/*
-Moonboots.prototype._defaultTemplate = function () {
-    var string = '<!DOCTYPE html>\n';
-    var prefix = this.config.resourcePrefix;
-    if (this.result.css.source) {
-        string += linkTag(prefix + this.cssFileName());
-    }
-    string += scriptTag(prefix + this.jsFileName());
-    return this.result.html = string;
+Moonboots.prototype.htmlSource = function () {
+    return this.result.html.source;
 };
-*/
-
-// writeFiles kicks out your app HTML, JS, and CSS into a folder you specify.
-/*
-Moonboots.prototype.writeFiles = function (folder, callback) {
-    var self = this;
-    self._ensureReady(function () {
-        async.parallel([
-            function (cb) {
-                self.sourceCode(function (err, source) {
-                    if (err) return cb(err);
-                    fs.writeFile(path.join(folder, self.jsFileName()), source, cb);
-                });
-            },
-            function (cb) {
-                self.cssSource(function (err, source) {
-                    if (err) return cb(err);
-                    fs.writeFile(path.join(folder, self.cssFileName()), source, cb);
-                });
-            },
-            function (cb) {
-                fs.writeFile(path.join(folder, 'index.html'), self.getTemplate(), cb);
-            }
-        ], callback);
-    });
-};
-*/
 
 Moonboots.prototype.getConfig = function (key) {
     var self = this;
@@ -318,19 +245,6 @@ Moonboots.prototype.getConfig = function (key) {
     }
     return this.config;
 };
-
-//TODO this should just be the html
-/*
-Moonboots.prototype.getResult = function(key, cb) {
-    var self = this;
-    self._ensureReady(function () {
-        if (typeof key === 'string') {
-            return cb(null, self.result[key]);
-        }
-        return cb(null, self.result);
-    });
-};
-*/
 
 // Main export
 module.exports = Moonboots;
@@ -343,7 +257,6 @@ function concatFiles(arrayOfFiles) {
     }).join('\n');
 }
 
-/*
 function linkTag(filename) {
     return '<link href="' + filename + '" rel="stylesheet" type="text/css">\n';
 }
@@ -351,4 +264,3 @@ function linkTag(filename) {
 function scriptTag(filename) {
     return '<script src="' + filename + '"></script>';
 }
-*/
