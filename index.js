@@ -51,9 +51,10 @@ function Moonboots(opts) {
     }
 
 
-    //developmentMode forces minify to false no matter what
+    //developmentMode forces minify to false and never build no matter what
     if (this.config.developmentMode) {
         this.config.minify = false;
+        this.config.buildDirectory = undefined;
     }
 
     //We'll re-add extensions later
@@ -81,48 +82,104 @@ Moonboots.prototype = Object.create(EventEmitter.prototype, {
 Moonboots.prototype.build = function () {
     var self = this;
 
-    async.parallel([
-        function _buildCSS(buildCSSDone) {
-            //If we're in development mode we just have to set the hash
-            if (self.config.developmentMode) {
-                self.result.css.hash = 'dev';
-                return buildCSSDone();
+
+    async.series([
+        function _buildFiles(buildFilesDone) {
+            var parts;
+            if (!self.config.buildDirectory) {
+                return buildFilesDone();
             }
-            self.bundleCSS(true, buildCSSDone);
+            fs.readdir(self.config.buildDirectory, function (err, files) {
+                if (err) {
+                    return buildFilesDone(err);
+                }
+                async.each(files, function (fileName, next) {
+                    if (path.extname(fileName) === '.js' && fileName.indexOf(self.config.jsFileName) === 0) {
+                        return fs.readFile(path.join(self.config.buildDirectory, fileName), 'utf8', function (err, data) {
+                            if (err) {
+                                return next(err);
+                            }
+                            parts = fileName.split('.');
+                            self.result.js.hash = parts[1];
+                            self.result.js.source = data;
+                            self.result.js.filename = fileName;
+                            next();
+                        });
+                    }
+                    if (path.extname(fileName) === '.css' && fileName.indexOf(self.config.cssFileName) === 0) {
+                        return fs.readFile(path.join(self.config.buildDirectory, fileName), 'utf8', function (err, data) {
+                            if (err) {
+                                return next(err);
+                            }
+                            parts = fileName.split('.');
+                            self.result.css.hash = parts[1];
+                            self.result.css.source = data;
+                            self.result.css.filename = fileName;
+                            next();
+                        });
+                    }
+                    return next();
+                }, buildFilesDone);
+            });
         },
-        function _buildJS(buildJSDone) {
-            //If we're in development mode we just have to set the hash
-            if (self.config.developmentMode) {
-                self.result.js.hash = 'dev';
-                return buildJSDone();
+        function _buildBundles(buildBundlesDone) {
+            if (self.result.js.filename && self.result.css.filename) {
+                //Buildfiles found existing files we don't have to build bundles
+                return buildBundlesDone();
             }
-            self.bundleJS(true, buildJSDone);
+            async.parallel([
+                function _buildCSS(buildCSSDone) {
+                    //If we're in development mode we just have to set the hash
+                    if (self.config.developmentMode) {
+                        self.result.css.hash = 'dev';
+                        return buildCSSDone();
+                    }
+                    if (self.config.buildDirectory) {
+                        //Check if the file exists, if we do return buildCSSDone
+                    }
+                    self.bundleCSS(true, buildCSSDone);
+                },
+                function _buildJS(buildJSDone) {
+                    //If we're in development mode we just have to set the hash
+                    if (self.config.developmentMode) {
+                        self.result.js.hash = 'dev';
+                        return buildJSDone();
+                    }
+                    self.bundleJS(true, buildJSDone);
+                }
+            ], buildBundlesDone);
+        },
+        function _setResults(setResultsDone) {
+            var cssFileName = self.config.cssFileName + '.' + self.result.css.hash;
+            var jsFileName = self.config.jsFileName + '.' + self.result.js.hash;
+
+            if (self.config.minify) {
+                cssFileName += '.min';
+                jsFileName += '.min';
+            }
+
+            cssFileName += '.css';
+            jsFileName += '.js';
+
+            self.result.css.fileName = cssFileName;
+            self.result.js.fileName = jsFileName;
+
+            self.result.html.source = '<!DOCTYPE html>\n';
+            if (self.config.stylesheets.length > 0) {
+                self.result.html.source += linkTag(self.config.resourcePrefix + self.cssFileName());
+            }
+            self.result.html.source += scriptTag(self.config.resourcePrefix + self.jsFileName());
+            self.result.html.context = {
+                jsFileName: self.jsFileName(),
+                cssFileName: self.cssFileName()
+            };
+            setResultsDone();
         }
-    ], function (/*err*/) {
-        var cssFileName = self.config.cssFileName + '.' + self.result.css.hash;
-        var jsFileName = self.config.jsFileName + '.' + self.result.js.hash;
-
-        if (self.config.minify) {
-            cssFileName += '.min';
-            jsFileName += '.min';
+    ], function (err) {
+        if (err) {
+            console.error("THROWING AN ERROR", err.message);
+            throw new Error(err.message || err);
         }
-
-        cssFileName += '.css';
-        jsFileName += '.js';
-
-        self.result.css.fileName = cssFileName;
-        self.result.js.fileName = jsFileName;
-
-        //if (err) { throw new Error(err.message || err); }
-        self.result.html.source = '<!DOCTYPE html>\n';
-        if (self.config.stylesheets.length > 0) {
-            self.result.html.source += linkTag(self.config.resourcePrefix + self.cssFileName());
-        }
-        self.result.html.source += scriptTag(self.config.resourcePrefix + self.jsFileName());
-        self.result.html.context = {
-            jsFileName: self.jsFileName(),
-            cssFileName: self.cssFileName()
-        };
         self.emit('ready');
     });
 };

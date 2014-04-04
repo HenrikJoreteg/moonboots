@@ -17,4 +17,14 @@ Lab.experiment('error states', function () {
         Lab.expect(initEmpty).to.throw(Error);
         done();
     });
+    Lab.test('invalid build directory', function (done) {
+        function initBadBuild() {
+            moonboots = new Moonboots({
+                main: __dirname + '/../fixtures/app/app.js',
+                buildDirectory: __dirname + '/nonexistant'
+            });
+        }
+        Lab.expect(initBadBuild).to.throw(Error);
+        done();
+    });
 });
