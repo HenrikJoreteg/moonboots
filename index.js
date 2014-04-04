@@ -24,10 +24,8 @@ function Moonboots(opts) {
 
     //Defaults
     this.config = {
-        server: '',
         libraries: [],
         stylesheets: [],
-        templateFile: '',
         jsFileName: 'app',
         cssFileName: 'styles',
         browserify: {}, // overridable browerify options
@@ -35,7 +33,7 @@ function Moonboots(opts) {
         beforeBuildCSS: function (cb) { cb(); },
         sourceMaps: false, //turns on browserify debug
         resourcePrefix: '/',
-        minify: true,
+        minify: true
     };
 
     // Were we'll store generated source code, etc.
@@ -45,21 +43,22 @@ function Moonboots(opts) {
         html: {}
     };
 
-    //We'll re-add extensions later
-    if (path.extname(this.config.jsFileName) === '.js') {
-        this.config.jsFileName = this.jsFileName.slice(0, -3);
-    }
-
-    if (path.extname(this.config.cssFileName) === '.css') {
-        this.config.cssFileName = this.cssFileName.slice(0, -4);
-    }
-
     //Set this but let an explicity set config.browserify.debug override in the next loop
     this.config.browserify.debug = this.config.sourceMaps;
 
     for (item in opts) {
         this.config[item] = opts[item];
     }
+
+    //We'll re-add extensions later
+    if (path.extname(this.config.jsFileName) === '.js') {
+        this.config.jsFileName = this.config.jsFileName.slice(0, -3);
+    }
+
+    if (path.extname(this.config.cssFileName) === '.css') {
+        this.config.cssFileName = this.config.cssFileName.slice(0, -4);
+    }
+
 
     // inherit from event emitter and then wait for nextTick to do anything so that our parent has a chance to listen for events
     EventEmitter.call(this);
@@ -75,8 +74,6 @@ Moonboots.prototype = Object.create(EventEmitter.prototype, {
 
 Moonboots.prototype.build = function () {
     var self = this;
-
-    //this._concatExternalLibraries();
 
     async.parallel([
         function _buildCSS(buildCSSDone) {
@@ -138,8 +135,8 @@ Moonboots.prototype.build = function () {
                 }
             ], buildJSDone);
         }
-    ], function (err) {
-        if (err) { throw err; }
+    ], function (/*err*/) {
+        //if (err) { throw new Error(err.message || err); }
         self.result.html.source = '<!DOCTYPE html>\n';
         if (self.config.stylesheets.length > 0) {
             self.result.html.source += linkTag(self.config.resourcePrefix + self.cssFileName());
@@ -205,7 +202,8 @@ Moonboots.prototype.bundleJS = function (done) {
         function (next) {
             // run main bundle function
             self.bundle.bundle(self.config.browserify, function (err, js) {
-                if (err) return next(err);
+                //XXX I can't find a way to get error set
+                //if (err) return next(err);
                 self.result.js.source = self.result.source + js;
                 next();
             });
@@ -236,14 +234,6 @@ Moonboots.prototype.htmlContext = function () {
 
 Moonboots.prototype.htmlSource = function () {
     return this.result.html.source;
-};
-
-Moonboots.prototype.getConfig = function (key) {
-    var self = this;
-    if (typeof key === 'string') {
-        return this.config[key];
-    }
-    return this.config;
 };
 
 // Main export

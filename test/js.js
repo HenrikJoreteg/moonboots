@@ -29,7 +29,7 @@ Lab.experiment('js with no minify', function () {
     Lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
-            cssFileName: 'app',
+            jsFileName: 'app',
             minify: false
         };
         moonboots = new Moonboots(options);
@@ -47,6 +47,21 @@ Lab.experiment('js with no minify', function () {
    */
 });
 
+Lab.experiment('js with .js already added', function () {
+    Lab.before(function (done) {
+        var options = {
+            main: __dirname + '/../fixtures/app/app.js',
+            jsFileName: 'app.js'
+        };
+        moonboots = new Moonboots(options);
+        moonboots.on('ready', done);
+    });
+    Lab.test('filename', function (done) {
+        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal('app.882ddd9b.min.js');
+        done();
+    });
+});
+
 Lab.experiment('modulesDir', function () {
     Lab.before(function (done) {
         var options = {
@@ -59,6 +74,36 @@ Lab.experiment('modulesDir', function () {
     });
     Lab.test('module foo is in source', function (done) {
         Lab.expect(moonboots.jsSource(), 'js source').to.contain('exports="foo"');
+        done();
+    });
+});
+
+Lab.experiment('transforms', function () {
+    var tranformRan = false;
+    Lab.before(function (done) {
+        var options = {
+            main: __dirname + '/../fixtures/app/app.js',
+            jsFileName: 'app',
+            browserify: {
+                transforms: [
+                    function (file) {
+                        var through = require('through');
+                        tranformRan = true;
+                        return through(
+                            function write() {},
+                            function _end() {
+                                this.queue(null);
+                            }
+                        );
+                    }
+                ]
+            }
+        };
+        moonboots = new Moonboots(options);
+        moonboots.on('ready', done);
+    });
+    Lab.test('ran', function (done) {
+        Lab.expect(tranformRan).to.equal(true);
         done();
     });
 });

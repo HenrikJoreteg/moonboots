@@ -11,10 +11,10 @@ Lab.experiment('error states', function () {
         done();
     });
     Lab.test('invalid options', function (done) {
-        function initBad() {
+        function initEmpty() {
             moonboots = new Moonboots();
         }
-        Lab.expect(initBad).to.throw(Error);
+        Lab.expect(initEmpty).to.throw(Error);
         done();
     });
 });

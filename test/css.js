@@ -49,6 +49,25 @@ Lab.experiment('css with no minify', function () {
     });
 });
 
+Lab.experiment('js with .js already added', function () {
+    Lab.before(function (done) {
+        var options = {
+            main: __dirname + '/../fixtures/app/app.js',
+            cssFileName: 'app.css',
+            stylesheets: [
+                __dirname + '/../fixtures/stylesheets/style.css'
+            ]
+        };
+        moonboots = new Moonboots(options);
+        moonboots.on('ready', done);
+    });
+    Lab.test('filename', function (done) {
+        Lab.expect(moonboots.cssFileName(), 'js filename').to.equal('app.38ea6c96.min.css');
+        done();
+    });
+});
+
+
 Lab.experiment('beforeBuildCSS', function () {
     var beforeRan = false;
     Lab.before(function (done) {
