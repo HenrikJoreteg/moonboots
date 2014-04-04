@@ -29,26 +29,3 @@ Lab.experiment('html with default options', function () {
         done();
     });
 });
-
-Lab.experiment('html in development mode', function () {
-    Lab.before(function (done) {
-        var options = {
-            main: __dirname + '/../fixtures/app/app.js',
-            jsFileName: 'app',
-            cssFileName: 'app',
-            developmentMode: true,
-            stylesheets: [
-                __dirname + '/../fixtures/stylesheets/style.css'
-            ]
-        };
-        moonboots = new Moonboots(options);
-        moonboots.on('ready', done);
-    });
-    Lab.test('htmlContext', function (done) {
-        var context = moonboots.htmlContext();
-        Lab.expect(context).to.have.keys('jsFileName', 'cssFileName');
-        Lab.expect(context.jsFileName).to.equal('app.dev.js');
-        Lab.expect(context.cssFileName).to.equal('app.dev.css');
-        done();
-    });
-});
