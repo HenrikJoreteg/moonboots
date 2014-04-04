@@ -86,7 +86,8 @@ Available options that can be passed to Moonboots:
 - `beforeBuildCSS` (optional, function, default: nothing) - function to run before concatenating your CSS files during development. This is useful for stuff like generating your CSS files from a preprocessor. If you specify a callback moonboots will wait for you to call it. If not, it will be run synchrnously (by the magic of Function.prototype.length).
 - `sourceMaps` (optional, boolean, default: false) - set to true to enable sourcemaps (sets browserify.debug to true)
 - `resourcePrefix` (optional, string, default: '/') - specify what dirname should be prefixed when generating html source. If you're serving the whole app statically you may need relative paths. So just passing resourcePrefix: '' would make the template render with `<script src="app.js"></script>` instead of `<script src="/app.js"></script>`.
-- `minify` (optional, boolean, default: true) An option for whether to minify JS and CSS
+- `minify` (optional, boolean, default: true) An option for whether to minify JS and CSS.
+- `developmentMode` (optional, boolean, default: false) If this is true, the css and js will be rebuilt on every call to jsSource and cssSource. Neither will be minified even if minify is set to true.
 
 ## About Source Maps
 

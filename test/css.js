@@ -21,7 +21,9 @@ Lab.experiment('css with default options', function () {
         done();
     });
     Lab.test('content', function (done) {
-        Lab.expect(moonboots.cssSource(), 'css source').to.equal('body{background:#ccc}');
+        moonboots.cssSource(function (err, css) {
+            Lab.expect(css, 'css source').to.equal('body{background:#ccc}');
+        });
         done();
     });
 });
@@ -44,12 +46,14 @@ Lab.experiment('css with no minify', function () {
         done();
     });
     Lab.test('content', function (done) {
-        Lab.expect(moonboots.cssSource(), 'css source').to.equal('body {background: #ccc;}\n');
+        moonboots.cssSource( function(err, css) {
+            Lab.expect(css, 'css source').to.equal('body {background: #ccc;}\n');
+        });
         done();
     });
 });
 
-Lab.experiment('js with .js already added', function () {
+Lab.experiment('css with .css already added', function () {
     Lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
@@ -62,7 +66,7 @@ Lab.experiment('js with .js already added', function () {
         moonboots.on('ready', done);
     });
     Lab.test('filename', function (done) {
-        Lab.expect(moonboots.cssFileName(), 'js filename').to.equal('app.38ea6c96.min.css');
+        Lab.expect(moonboots.cssFileName(), 'css filename').to.equal('app.38ea6c96.min.css');
         done();
     });
 });

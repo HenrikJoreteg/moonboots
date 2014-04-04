@@ -11,16 +11,15 @@ var meta = require('bundle-metadata');
 
 
 function Moonboots(opts) {
-    //The only required parameter, throw if it's missing
+    var item;
+    //'opts' has to be an object
     if (typeof opts !== 'object') {
         throw new Error('Invalid options');
     }
+    //'main' is the only required parameter, throw if it's missing
     if (!opts.main) {
         throw new Error("You must supply at minimum a `main` file for your moonboots app: {main: 'myApp.js'}");
     }
-
-    var self = this;
-    var item;
 
     //Defaults
     this.config = {
@@ -33,13 +32,14 @@ function Moonboots(opts) {
         beforeBuildCSS: function (cb) { cb(); },
         sourceMaps: false, //turns on browserify debug
         resourcePrefix: '/',
-        minify: true
+        minify: true,
+        developmentMode: false
     };
 
     // Were we'll store generated source code, etc.
     this.result = {
-        js: {},
-        css: {},
+        js: {ext: 'js'},
+        css: {ext: 'css'},
         html: {}
     };
 
@@ -50,15 +50,19 @@ function Moonboots(opts) {
         this.config[item] = opts[item];
     }
 
+
+    //developmentMode forces minify to false no matter what
+    if (this.config.developmentMode) {
+        this.config.minify = false;
+    }
+
     //We'll re-add extensions later
     if (path.extname(this.config.jsFileName) === '.js') {
         this.config.jsFileName = this.config.jsFileName.slice(0, -3);
     }
-
     if (path.extname(this.config.cssFileName) === '.css') {
         this.config.cssFileName = this.config.cssFileName.slice(0, -4);
     }
-
 
     // inherit from event emitter and then wait for nextTick to do anything so that our parent has a chance to listen for events
     EventEmitter.call(this);
@@ -72,70 +76,43 @@ Moonboots.prototype = Object.create(EventEmitter.prototype, {
     }
 });
 
+//Initial build, in development mode we just set hashes and filenames, otherwise we prime the sources
+//Emits 'ready' when done
 Moonboots.prototype.build = function () {
     var self = this;
 
     async.parallel([
         function _buildCSS(buildCSSDone) {
-            async.series([
-                self.config.beforeBuildCSS,
-                function _concatCSS(next) {
-                    self.result.css.source = concatFiles(self.config.stylesheets);
-                    next();
-                },
-                function _sourceCSS(next) {
-                    var cssCheckSum;
-                    var csssha = crypto.createHash('sha1'); // we'll calculate this to know whether to change the filename
-                    // create our hash and build filenames accordingly
-                    csssha.update(self.result.css.source);
-                    cssCheckSum = self.result.css.checkSum = csssha.digest('hex').slice(0, 8);
-
-                    // store filenames
-                    self.result.css.fileName = self.config.cssFileName + '.' + cssCheckSum;
-                    if (self.config.minify) {
-                        self.result.css.fileName = self.result.css.fileName + '.min';
-                        self.result.css.source = cssmin(self.result.css.source);
-                    }
-
-                    self.result.css.fileName = self.result.css.fileName + '.css';
-
-                    next();
-                }
-            ], buildCSSDone);
+            //If we're in development mode we just have to set the hash
+            if (self.config.developmentMode) {
+                self.result.css.hash = 'dev';
+                return buildCSSDone();
+            }
+            self.bundleCSS(true, buildCSSDone);
         },
         function _buildJS(buildJSDone) {
-            var jssha = crypto.createHash('sha1'); // we'll calculate this to know whether to change the filename
-            async.series([
-                self.config.beforeBuildJS,
-                function _concatLibs(next) {
-                    //Start w/ external libraries
-                    self.result.js.source = concatFiles(self.config.libraries);
-                    jssha.update(self.result.js.source);
-                    next();
-                },
-                function (next) {
-                    self.bundleJS(next);
-                },
-                function (next) {
-                    var jsCheckSum;
-                    // create our hash and build filenames accordingly
-                    jssha.update(self.result.js.bundleHash);
-                    jsCheckSum = self.result.js.checkSum = jssha.digest('hex').slice(0, 8);
-
-                    // store filenames
-                    self.result.js.fileName = self.config.jsFileName + '.' + jsCheckSum;
-
-                    if (self.config.minify) {
-                        self.result.js.fileName = self.result.js.fileName + '.min';
-                        self.result.js.source = UglifyJS.minify(self.result.js.source, {fromString: true}).code;
-                    }
-                    self.result.js.fileName = self.result.js.fileName + '.js';
-
-                    next();
-                }
-            ], buildJSDone);
+            //If we're in development mode we just have to set the hash
+            if (self.config.developmentMode) {
+                self.result.js.hash = 'dev';
+                return buildJSDone();
+            }
+            self.bundleJS(true, buildJSDone);
         }
     ], function (/*err*/) {
+        var cssFileName = self.config.cssFileName + '.' + self.result.css.hash;
+        var jsFileName = self.config.jsFileName + '.' + self.result.js.hash;
+
+        if (self.config.minify) {
+            cssFileName += '.min';
+            jsFileName += '.min';
+        }
+
+        cssFileName += '.css';
+        jsFileName += '.js';
+
+        self.result.css.fileName = cssFileName;
+        self.result.js.fileName = jsFileName;
+
         //if (err) { throw new Error(err.message || err); }
         self.result.html.source = '<!DOCTYPE html>\n';
         if (self.config.stylesheets.length > 0) {
@@ -150,17 +127,72 @@ Moonboots.prototype.build = function () {
     });
 };
 
+// Actually generate the CSS bundle
+Moonboots.prototype.bundleCSS = function (setHash, done) {
+    var self = this;
+    async.series([
+        self.config.beforeBuildCSS,
+        function _buildCSS(next) {
+            var cssCheckSum, csssha;
+            self.result.css.source = concatFiles(self.config.stylesheets);
+            if (setHash) {
+                csssha = crypto.createHash('sha1'); // we'll calculate this to know whether to change the filename
+                csssha.update(self.result.css.source);
+                self.result.css.hash = csssha.digest('hex').slice(0, 8);
+            }
+            if (self.config.minify) {
+                self.result.css.source = cssmin(self.result.css.source);
+            }
+            next();
+        }
+    ], function _bundleCSSDone() {
+        done(null, self.result.css.source);
+    });
+};
+
 // Actually generate the JS bundle
-Moonboots.prototype.bundleJS = function (done) {
-    var modules, args;
+Moonboots.prototype.bundleJS = function (setHash, done) {
+    var self = this;
+    var jssha = crypto.createHash('sha1'); // we'll calculate this to know whether to change the filename
+    async.series([
+        self.config.beforeBuildJS,
+        function _concatLibs(next) {
+            //Start w/ external libraries
+            self.result.js.source = concatFiles(self.config.libraries);
+            jssha.update(self.result.js.source);
+            next();
+        },
+        function (next) {
+            self.browserify(setHash, next);
+        },
+        function (next) {
+            if (setHash) {
+                jssha.update(self.result.js.bundleHash);
+                self.result.js.hash = jssha.digest('hex').slice(0, 8);
+            }
+            if (self.config.minify) {
+                self.result.js.source = UglifyJS.minify(self.result.js.source, {fromString: true}).code;
+            }
+            next();
+        }
+    ], function _bundleJSDone() {
+        done(null, self.result.js.source);
+    });
+};
+
+
+Moonboots.prototype.browserify = function (setHash, done) {
+    var modules, args, bundle, hashBundle;
     var self = this;
 
     // Create two bundles:
     // bundle is to get the actual js source from a browserify bundle
     // hashBundle is to create a copy of our other bundle (with the same requires and transforms)
     // so we can use its resolve fn to get a predictable hash from module-deps
-    self.bundle = browserify();
-    self.hashBundle = browserify();
+    bundle = browserify();
+    if (setHash) {
+        hashBundle = browserify();
+    }
 
     // handle module folder that you want to be able to require without relative paths.
     if (self.config.modulesDir) {
@@ -171,8 +203,10 @@ Moonboots.prototype.bundleJS = function (done) {
                     path.join(self.config.modulesDir, moduleFileName),
                     {expose: path.basename(moduleFileName, '.js')}
                 ];
-                self.bundle.require.apply(self.bundle, args);
-                self.hashBundle.require.apply(self.hashBundle, args);
+                bundle.require.apply(bundle, args);
+                if (setHash) {
+                    hashBundle.require.apply(hashBundle, args);
+                }
             }
         });
     }
@@ -180,19 +214,24 @@ Moonboots.prototype.bundleJS = function (done) {
     // handle browserify transforms if passed
     if (self.config.browserify.transforms) {
         self.config.browserify.transforms.forEach(function (tr) {
-            self.bundle.transform(tr);
-            self.hashBundle.transform(tr);
+            bundle.transform(tr);
+            if (setHash) {
+                hashBundle.transform(tr);
+            }
         });
     }
 
     // add main import
-    self.bundle.add(self.config.main);
+    bundle.add(self.config.main);
 
     async.parallel([
         function (next) {
+            if (!setHash) {
+                return next();
+            }
             // Get a predictable hash for the bundle
             mdeps(self.config.main, {
-                resolve: self.hashBundle._resolve.bind(self.hashBundle)
+                resolve: hashBundle._resolve.bind(hashBundle)
             })
             .pipe(meta().on('hash', function (hash) {
                 self.result.js.bundleHash = hash;
@@ -201,7 +240,7 @@ Moonboots.prototype.bundleJS = function (done) {
         },
         function (next) {
             // run main bundle function
-            self.bundle.bundle(self.config.browserify, function (err, js) {
+            bundle.bundle(self.config.browserify, function (err, js) {
                 //XXX I can't find a way to get error set
                 //if (err) return next(err);
                 self.result.js.source = self.result.source + js;
@@ -211,30 +250,50 @@ Moonboots.prototype.bundleJS = function (done) {
     ], done);
 };
 
-/*Main moonboots functions*/
-Moonboots.prototype.jsSource = function () {
-    return this.result.js.source;
+/*
+* Main moonboots functions.
+* These should be the only methods you call.
+*/
+
+//Send jsSource to callback, rebuilding every time if in development mode
+Moonboots.prototype.jsSource = function (cb) {
+    if (!this.config.developmentMode) {
+        return cb(null, this.result.js.source);
+    }
+    this.bundleJS(false, cb);
 };
 
-Moonboots.prototype.cssSource = function () {
-    return this.result.css.source;
+//Send cssSource to callback, rebuilding every time if in development mode
+Moonboots.prototype.cssSource = function (cb) {
+    if (!this.config.developmentMode) {
+        return cb(null, this.result.css.source);
+    }
+    this.bundleCSS(false, cb);
 };
 
+//Return jsFileName, which never changes
 Moonboots.prototype.jsFileName = function () {
     return this.result.js.fileName;
 };
 
+//Return jsFileName, which never changes
 Moonboots.prototype.cssFileName = function () {
     return this.result.css.fileName;
 };
 
+//Return htmlContext, which never changes
 Moonboots.prototype.htmlContext = function () {
     return this.result.html.context;
 };
 
+//Return htmlSource, which never changes
 Moonboots.prototype.htmlSource = function () {
     return this.result.html.source;
 };
+
+/*
+* End main moonboots functions.
+*/
 
 // Main export
 module.exports = Moonboots;

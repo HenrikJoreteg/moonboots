@@ -73,8 +73,10 @@ Lab.experiment('modulesDir', function () {
         moonboots.on('ready', done);
     });
     Lab.test('module foo is in source', function (done) {
-        Lab.expect(moonboots.jsSource(), 'js source').to.contain('exports="foo"');
-        done();
+        moonboots.jsSource(function (err, js) {
+            Lab.expect(js, 'js source').to.contain('exports="foo"');
+            done();
+        });
     });
 });
 
