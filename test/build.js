@@ -6,10 +6,10 @@ var path = require('path');
 var crypto = require('crypto');
 var Moonboots = require('..');
 var moonboots;
-var tmpHash = crypto.randomBytes(16).toString('hex');
-var buildDir = os.tmpdir() + tmpHash;
 
-Lab.experiment('files get built', function () {
+Lab.experiment('files get read from buildDirectory', function () {
+    var tmpHash = crypto.randomBytes(16).toString('hex');
+    var buildDir = os.tmpdir() + tmpHash;
     Lab.before(function (done) {
         async.parallel([
             function (next) {
@@ -24,7 +24,7 @@ Lab.experiment('files get built', function () {
             function (next) {
                 fs.writeFile(path.join(buildDir, 'readme.md'), '# this file will be ignored in the builddir', next);
             }
-        ], function (err) {
+        ], function () {
             var options = {
                 main: __dirname + '/../fixtures/app/app.js',
                 jsFileName: 'app',
@@ -78,3 +78,38 @@ Lab.experiment('files get built', function () {
     });
 });
 
+Lab.experiment('Files get written to build directory', function () {
+    var tmpHash = crypto.randomBytes(16).toString('hex');
+    var buildDir = os.tmpdir() + tmpHash;
+    Lab.before(function (done) {
+        fs.mkdir(buildDir, function () {
+            var options = {
+                main: __dirname + '/../fixtures/app/app.js',
+                jsFileName: 'app',
+                cssFileName: 'app',
+                buildDirectory: buildDir,
+                stylesheets: [
+                    __dirname + '/../fixtures/stylesheets/style.css'
+                ]
+            };
+            moonboots = new Moonboots(options);
+            moonboots.on('ready', done);
+        });
+    });
+    Lab.test('js file was written', function (done) {
+        var jsFileName = moonboots.jsFileName();
+        Lab.expect(jsFileName).to.equal('app.882ddd9b.min.js');
+        fs.readFile(path.join(buildDir, jsFileName), 'utf8', function (err) {
+            Lab.expect(err).to.not.be.ok;
+            done();
+        });
+    });
+    Lab.test('css file was written', function (done) {
+        var cssFileName = moonboots.cssFileName();
+        Lab.expect(cssFileName).to.equal('app.38ea6c96.min.css');
+        fs.readFile(path.join(buildDir, cssFileName), 'utf8', function (err) {
+            Lab.expect(err).to.not.be.ok;
+            done();
+        });
+    });
+});

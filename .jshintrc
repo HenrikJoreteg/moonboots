@@ -7,5 +7,6 @@
     "evil": true,
     "white": true,
     "undef": true,
+    "unused": true,
     "node": true
 }

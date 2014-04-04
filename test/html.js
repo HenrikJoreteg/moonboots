@@ -1,5 +1,4 @@
 var Lab = require('lab');
-var async = require('async');
 var Moonboots = require('..');
 var moonboots;
 

@@ -98,34 +98,38 @@ Moonboots.prototype.build = function () {
                     if (path.extname(fileName) === '.js' && fileName.indexOf(self.config.jsFileName) === 0) {
                         return fs.readFile(path.join(self.config.buildDirectory, fileName), 'utf8', function (err, data) {
                             if (err) {
-                                return next();
+                                self.config.buildDirectory = undefined;
+                                return next(true);
                             }
                             parts = fileName.split('.');
                             self.result.js.hash = parts[1];
                             self.result.js.source = data;
                             self.result.js.filename = fileName;
+                            self.result.js.fromBuild = true;
                             next();
                         });
                     }
                     if (path.extname(fileName) === '.css' && fileName.indexOf(self.config.cssFileName) === 0) {
                         return fs.readFile(path.join(self.config.buildDirectory, fileName), 'utf8', function (err, data) {
                             if (err) {
-                                return next();
+                                self.config.buildDirectory = undefined;
+                                return next(true);
                             }
                             parts = fileName.split('.');
                             self.result.css.hash = parts[1];
                             self.result.css.source = data;
                             self.result.css.filename = fileName;
+                            self.result.css.fromBuild = true;
                             next();
                         });
                     }
                     next();
-                }, buildFilesDone);
+                }, function () { buildFilesDone(); });
             });
         },
         function _buildBundles(buildBundlesDone) {
             if (self.result.js.filename && self.result.css.filename) {
-                //Buildfiles found existing files we don't have to build bundles
+                //buildFiles found existing files we don't have to build bundles
                 return buildBundlesDone();
             }
             async.parallel([
@@ -134,9 +138,6 @@ Moonboots.prototype.build = function () {
                     if (self.config.developmentMode) {
                         self.result.css.hash = 'dev';
                         return buildCSSDone();
-                    }
-                    if (self.config.buildDirectory) {
-                        //Check if the file exists, if we do return buildCSSDone
                     }
                     self.bundleCSS(true, buildCSSDone);
                 },
@@ -171,10 +172,29 @@ Moonboots.prototype.build = function () {
             }
             self.result.html.source += scriptTag(self.config.resourcePrefix + self.jsFileName());
             self.result.html.context = {
-                jsFileName: self.jsFileName(),
-                cssFileName: self.cssFileName()
+                jsFileName: self.result.js.fileName,
+                cssFileName: self.result.css.fileName
             };
             setResultsDone();
+        },
+        function _createBuildFiles(createBuildFilesDone) {
+            if (!self.config.buildDirectory) {
+                return createBuildFilesDone();
+            }
+
+            async.parallel([
+                function (next) {
+                    if (self.result.js.fromBuild) {
+                        return next();
+                    }
+                    fs.writeFile(path.join(self.config.buildDirectory, self.result.css.fileName), self.result.css.source, next);
+                }, function (next) {
+                    if (self.result.css.fromBuild) {
+                        return next();
+                    }
+                    fs.writeFile(path.join(self.config.buildDirectory, self.result.js.fileName), self.result.js.source, next);
+                }
+            ], createBuildFilesDone);
         }
     ], function () {
         self.emit('ready');
@@ -187,7 +207,7 @@ Moonboots.prototype.bundleCSS = function (setHash, done) {
     async.series([
         self.config.beforeBuildCSS,
         function _buildCSS(next) {
-            var cssCheckSum, csssha;
+            var csssha;
             self.result.css.source = concatFiles(self.config.stylesheets);
             if (setHash) {
                 csssha = crypto.createHash('sha1'); // we'll calculate this to know whether to change the filename

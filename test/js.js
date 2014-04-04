@@ -1,5 +1,4 @@
 var Lab = require('lab');
-var async = require('async');
 var Moonboots = require('..');
 var moonboots;
 
@@ -88,7 +87,7 @@ Lab.experiment('transforms', function () {
             jsFileName: 'app',
             browserify: {
                 transforms: [
-                    function (file) {
+                    function () {
                         var through = require('through');
                         transformRan = true;
                         return through(
