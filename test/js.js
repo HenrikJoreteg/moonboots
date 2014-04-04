@@ -74,14 +74,14 @@ Lab.experiment('modulesDir', function () {
     });
     Lab.test('module foo is in source', function (done) {
         moonboots.jsSource(function (err, js) {
-            Lab.expect(js, 'js source').to.contain('exports="foo"');
+            Lab.expect(js, 'js source').to.contain('"foo"');
             done();
         });
     });
 });
 
 Lab.experiment('transforms', function () {
-    var tranformRan = false;
+    var transformRan = false;
     Lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
@@ -90,7 +90,7 @@ Lab.experiment('transforms', function () {
                 transforms: [
                     function (file) {
                         var through = require('through');
-                        tranformRan = true;
+                        transformRan = true;
                         return through(
                             function write() {},
                             function _end() {
@@ -105,7 +105,7 @@ Lab.experiment('transforms', function () {
         moonboots.on('ready', done);
     });
     Lab.test('ran', function (done) {
-        Lab.expect(tranformRan).to.equal(true);
+        Lab.expect(transformRan).to.equal(true);
         done();
     });
 });

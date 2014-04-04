@@ -1,7 +1,7 @@
 var Lab = require('lab');
 var async = require('async');
 var Moonboots = require('..');
-var moonboots, beforeBuildJSRan, beforeBuildCSSRan;
+var moonboots, beforeBuildJSRan, beforeBuildCSSRan, transformRan;
 
 Lab.experiment('development mode', function () {
     Lab.before(function (done) {
@@ -14,12 +14,16 @@ Lab.experiment('development mode', function () {
                 beforeBuildJSRan = true;
                 cb();
             },
+            beforeBuildCSS: function (cb) {
+                beforeBuildCSSRan = true;
+                cb();
+            },
             modulesDir: __dirname + '/../fixtures/modules',
             browserify: {
                 transforms: [
                     function (file) {
                         var through = require('through');
-                        tranformRan = true;
+                        transformRan = true;
                         return through(
                             function write() {},
                             function _end() {
@@ -28,10 +32,6 @@ Lab.experiment('development mode', function () {
                         );
                     }
                 ]
-            },
-            beforeBuildCSS: function (cb) {
-                beforeBuildCSSRan = true;
-                cb();
             },
             stylesheets: [
                 __dirname + '/../fixtures/stylesheets/style.css'
@@ -51,11 +51,14 @@ Lab.experiment('development mode', function () {
         beforeBuildJSRan = false;
         moonboots.jsSource(function (err, js) {
             Lab.expect(beforeBuildJSRan).to.equal(true);
+            Lab.expect(transformRan).to.equal(true);
+            Lab.expect(js, 'js source').to.contain('"foo"');
             done();
         });
     });
     Lab.test('css rebuilds every request', function (done) {
         beforeBuildCSSRan = false;
+        transformRan = false;
         moonboots.cssSource(function (err, css) {
             Lab.expect(beforeBuildCSSRan).to.equal(true);
             done();
