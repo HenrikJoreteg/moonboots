@@ -31,9 +31,9 @@ var clientApp = new Moonboots({
 // We can choose to not run a server, but instead just
 // write the files to a directory. If we ran the script
 // with `node server.js --build` then our files will be
-// buil5 and saved to ./build with developmentMode
+// built and saved to ./build with developmentMode
 // turned off and the script will exit
-if (!!process.argv.join(' ').indexOf(' --build')) {
+if (process.argv.join(' ').indexOf(' --build') > -1) {
     clientApp.config.developmentMode = false;
     clientApp.build(__dirname + '/sample-build');
     return;
