@@ -18,13 +18,42 @@ Lab.experiment('error states', function () {
         done();
     });
     Lab.test('invalid build directory', function (done) {
-        function initBadBuild() {
-            moonboots = new Moonboots({
-                main: __dirname + '/../fixtures/app/app.js',
-                buildDirectory: __dirname + '/nonexistant'
-            });
-        }
-        Lab.expect(initBadBuild).to.throw(Error);
-        done();
+        moonboots = new Moonboots({
+            main: __dirname + '/../fixtures/app/app.js',
+            stylesheets: [
+                __dirname + '/../fixtures/stylesheets/style.css'
+            ],
+            buildDirectory: __dirname + '/nonexistant'
+        });
+        moonboots.on('ready', function () {
+            var context = moonboots.htmlContext();
+            Lab.expect(context.jsFileName).to.equal('app.882ddd9b.min.js');
+            done();
+        });
+    });
+    Lab.test('unreadable build js file', function (done) {
+        moonboots = new Moonboots({
+            main: __dirname + '/../fixtures/app/app.js',
+            stylesheets: [
+                __dirname + '/../fixtures/stylesheets/style.css'
+            ],
+            buildDirectory: __dirname + '/../fixtures/build1'
+        });
+        moonboots.on('ready', function () {
+            var context = moonboots.htmlContext();
+            Lab.expect(context.jsFileName).to.equal('app.882ddd9b.min.js');
+            done();
+        });
+    });
+    Lab.test('unreadable build css file', function (done) {
+        moonboots = new Moonboots({
+            main: __dirname + '/../fixtures/app/app.js',
+            buildDirectory: __dirname + '/../fixtures/build2'
+        });
+        moonboots.on('ready', function () {
+            var context = moonboots.htmlContext();
+            Lab.expect(context.jsFileName).to.equal('app.882ddd9b.min.js');
+            done();
+        });
     });
 });

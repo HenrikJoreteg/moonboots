@@ -20,6 +20,9 @@ Lab.experiment('files get built', function () {
             },
             function (next) {
                 fs.writeFile(path.join(buildDir, 'app.deadbeef.min.css'), 'cascading stylesheets!' + tmpHash, next);
+            },
+            function (next) {
+                fs.writeFile(path.join(buildDir, 'readme.md'), '# this file will be ignored in the builddir', next);
             }
         ], function (err) {
             var options = {
@@ -42,6 +45,9 @@ Lab.experiment('files get built', function () {
             },
             function (next) {
                 fs.unlink(path.join(buildDir, 'app.deadbeef.min.css'), next);
+            },
+            function (next) {
+                fs.unlink(path.join(buildDir, 'readme.md'), next);
             },
             function (next) {
                 fs.rmdir(buildDir, next);

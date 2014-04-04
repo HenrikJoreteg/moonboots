@@ -91,13 +91,14 @@ Moonboots.prototype.build = function () {
             }
             fs.readdir(self.config.buildDirectory, function (err, files) {
                 if (err) {
-                    return buildFilesDone(err);
+                    self.config.buildDirectory = undefined;
+                    return buildFilesDone();
                 }
                 async.each(files, function (fileName, next) {
                     if (path.extname(fileName) === '.js' && fileName.indexOf(self.config.jsFileName) === 0) {
                         return fs.readFile(path.join(self.config.buildDirectory, fileName), 'utf8', function (err, data) {
                             if (err) {
-                                return next(err);
+                                return next();
                             }
                             parts = fileName.split('.');
                             self.result.js.hash = parts[1];
@@ -109,7 +110,7 @@ Moonboots.prototype.build = function () {
                     if (path.extname(fileName) === '.css' && fileName.indexOf(self.config.cssFileName) === 0) {
                         return fs.readFile(path.join(self.config.buildDirectory, fileName), 'utf8', function (err, data) {
                             if (err) {
-                                return next(err);
+                                return next();
                             }
                             parts = fileName.split('.');
                             self.result.css.hash = parts[1];
@@ -118,7 +119,7 @@ Moonboots.prototype.build = function () {
                             next();
                         });
                     }
-                    return next();
+                    next();
                 }, buildFilesDone);
             });
         },
@@ -175,11 +176,7 @@ Moonboots.prototype.build = function () {
             };
             setResultsDone();
         }
-    ], function (err) {
-        if (err) {
-            console.error("THROWING AN ERROR", err.message);
-            throw new Error(err.message || err);
-        }
+    ], function () {
         self.emit('ready');
     });
 };
