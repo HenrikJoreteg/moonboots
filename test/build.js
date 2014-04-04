@@ -96,6 +96,22 @@ Lab.experiment('Files get written to build directory', function () {
             moonboots.on('ready', done);
         });
     });
+    Lab.after(function (done) {
+        async.series([
+            function (next) {
+                fs.unlink(path.join(buildDir, 'app.882ddd9b.min.js'), next);
+            },
+            function (next) {
+                fs.unlink(path.join(buildDir, 'app.38ea6c96.min.css'), next);
+            },
+            function (next) {
+                fs.rmdir(buildDir, next);
+            }
+        ], function (err) {
+            if (err) {throw err; }
+            done();
+        });
+    });
     Lab.test('js file was written', function (done) {
         var jsFileName = moonboots.jsFileName();
         Lab.expect(jsFileName).to.equal('app.882ddd9b.min.js');
