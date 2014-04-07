@@ -39,6 +39,9 @@
     "browserify",
     "singlepage"
   ],
+  "scripts": {
+      "test": "make test"
+  },
   "license": "MIT",
   "main": "index.js",
   "repository": {
