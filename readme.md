@@ -75,7 +75,7 @@ app.listen(3000);
 Available options that can be passed to Moonboots:
 
 - `main` (required, filepath) - The main entry point of your client app. Browserify uses this build out your dependency tree.
-- `libraries` (optional, array of file paths, default: []) - An array of paths of JS files to concatenate and include before any CommonJS bundled code. This is useful for stuff like jQuery and jQuery plugins. Note that they will be included in the order specified. So if you're including a jQuery plugin, you'd better be sure that jQuery is listed first. 
+- `libraries` (optional, array of file paths, default: []) - An array of paths of JS files to concatenate and include before any CommonJS bundled code. This is useful for stuff like jQuery and jQuery plugins. Note that they will be included in the order specified. So if you're including a jQuery plugin, you'd better be sure that jQuery is listed first.
 - `stylesheets` (optional, array of file paths, default: []) - An array of CSS files to concatenate
 - `jsFileName` (optional, string, default: app) - the name of the JS file that will be built
 - `cssFileName` (optional, string, default: styles) - the name of the CSS file that will be built
@@ -86,9 +86,10 @@ Available options that can be passed to Moonboots:
 - `beforeBuildCSS` (optional, function, default: nothing) - function to run before concatenating your CSS files during development. This is useful for stuff like generating your CSS files from a preprocessor. If you specify a callback moonboots will wait for you to call it. If not, it will be run synchrnously (by the magic of Function.prototype.length).
 - `sourceMaps` (optional, boolean, default: false) - set to true to enable sourcemaps (sets browserify.debug to true)
 - `resourcePrefix` (optional, string, default: '/') - specify what dirname should be prefixed when generating html source. If you're serving the whole app statically you may need relative paths. So just passing resourcePrefix: '' would make the template render with `<script src="app.js"></script>` instead of `<script src="/app.js"></script>`.
-- `minify` (optional, boolean, default: true) An option for whether to minify JS and CSS.
-- `cache` (optional, boolean, default: true) An option for whether or not to recalculate the bundles each time
-- `developmentMode` (optional, boolean, default: false) If this is true, forces cache to false, minify to true, and disables buildDirectory
+- `minify` (optional, boolean, default: true) - an option for whether to minify JS and CSS.
+- `cache` (optional, boolean, default: true) - an option for whether or not to recalculate the bundles each time
+- `buildDirectory` (optional, string, default: nothing) - directory path in which to write the js and css bundles after building and optionally minifying.  If this is set, moonboots will first look in this folder for files matching the jsFileName and cssFileName parameters and use them if present. Those files will be trusted implicitly and no hashing or building will be done.
+- `developmentMode` (optional, boolean, default: false) - If this is true, forces cache to false, minify to true, and disables buildDirectory
 
 ## About Source Maps
 
