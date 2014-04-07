@@ -33,6 +33,7 @@ function Moonboots(opts) {
         sourceMaps: false, //turns on browserify debug
         resourcePrefix: '/',
         minify: true,
+        cache: true,
         developmentMode: false
     };
 
@@ -55,6 +56,7 @@ function Moonboots(opts) {
     if (this.config.developmentMode) {
         this.config.minify = false;
         this.config.buildDirectory = undefined;
+        this.config.cache = false;
     }
 
     //We'll re-add extensions later
@@ -134,16 +136,16 @@ Moonboots.prototype.build = function () {
             }
             async.parallel([
                 function _buildCSS(buildCSSDone) {
-                    //If we're in development mode we just have to set the hash
-                    if (self.config.developmentMode) {
+                    //If we're rebuilding on each request we just have to set the hash
+                    if (!self.config.cache) {
                         self.result.css.hash = 'dev';
                         return buildCSSDone();
                     }
                     self.bundleCSS(true, buildCSSDone);
                 },
                 function _buildJS(buildJSDone) {
-                    //If we're in development mode we just have to set the hash
-                    if (self.config.developmentMode) {
+                    //If we're rebuilding on each request we just have to set the hash
+                    if (!self.config.cache) {
                         self.result.js.hash = 'dev';
                         return buildJSDone();
                     }
@@ -331,7 +333,7 @@ Moonboots.prototype.browserify = function (setHash, done) {
 
 //Send jsSource to callback, rebuilding every time if in development mode
 Moonboots.prototype.jsSource = function (cb) {
-    if (!this.config.developmentMode) {
+    if (this.config.cache) {
         return cb(null, this.result.js.source);
     }
     this.bundleJS(false, cb);
@@ -339,7 +341,7 @@ Moonboots.prototype.jsSource = function (cb) {
 
 //Send cssSource to callback, rebuilding every time if in development mode
 Moonboots.prototype.cssSource = function (cb) {
-    if (!this.config.developmentMode) {
+    if (this.config.cache) {
         return cb(null, this.result.css.source);
     }
     this.bundleCSS(false, cb);
