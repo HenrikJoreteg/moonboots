@@ -56,4 +56,27 @@ Lab.experiment('error states', function () {
             done();
         });
     });
+    Lab.test('browserify error in development mode', function (done) {
+        moonboots = new Moonboots({
+            main: __dirname + '/../fixtures/app/badapp.js',
+            developmentMode: true
+        });
+        moonboots.on('ready', function () {
+            moonboots.jsSource(function (err, source) {
+                Lab.expect(source.indexOf('document.write'), 'inline error').to.equal(0);
+                done();
+            });
+        });
+    });
+    Lab.test('browserify error not in development mode', function (done) {
+        moonboots = new Moonboots({
+            main: __dirname + '/../fixtures/app/badapp.js'
+        });
+        moonboots.on('ready', function () {
+            moonboots.jsSource(function (err, source) {
+                Lab.expect(source.indexOf('document.write'), 'inline error').to.equal(-1);
+                done();
+            });
+        });
+    });
 });

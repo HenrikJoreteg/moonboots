@@ -300,7 +300,20 @@ Moonboots.prototype.browserify = function (setHash, done) {
     // add main import
     bundle.add(self.config.main);
 
-    async.parallel([
+    async.series([
+        function (next) {
+            // run main bundle function
+            bundle.bundle(self.config.browserify, function (err, js) {
+                self.result.js.source = self.result.js.source + js;
+                if (err) {
+                    self.emit('log', ['error', 'moonboots'], err);
+                    if (self.config.developmentMode) {
+                        self.result.js.source = 'document.write("<pre style=\'background:#ECFOF2; color:#444; padding: 20px\' >' + errorTrace(err) + '</pre>");';
+                    }
+                }
+                next(err);
+            });
+        },
         function (next) {
             if (!setHash) {
                 return next();
@@ -314,15 +327,6 @@ Moonboots.prototype.browserify = function (setHash, done) {
                 next();
             }));
         },
-        function (next) {
-            // run main bundle function
-            bundle.bundle(self.config.browserify, function (err, js) {
-                //XXX I can't find a way to get error set
-                //if (err) return next(err);
-                self.result.js.source = self.result.source + js;
-                next();
-            });
-        }
     ], done);
 };
 
@@ -388,4 +392,10 @@ function linkTag(filename) {
 
 function scriptTag(filename) {
     return '<script src="' + filename + '"></script>';
+}
+
+function errorTrace(err) {
+    var trace;
+    trace = JSON.stringify(err);
+    return trace.split('\n').join('<br>').replace(/"/g, '&quot;');
 }
