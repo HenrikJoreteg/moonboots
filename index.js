@@ -34,7 +34,8 @@ function Moonboots(opts) {
         resourcePrefix: '/',
         minify: true,
         cache: true,
-        developmentMode: false
+        developmentMode: false,
+        timingMode: false
     };
 
     // Were we'll store generated source code, etc.
@@ -50,7 +51,6 @@ function Moonboots(opts) {
     for (item in opts) {
         this.config[item] = opts[item];
     }
-
 
     //developmentMode forces minify to false and never build no matter what
     if (this.config.developmentMode) {
@@ -84,7 +84,7 @@ Moonboots.prototype = Object.create(EventEmitter.prototype, {
 Moonboots.prototype.build = function () {
     var self = this;
 
-
+    self.timing('timing', 'build start');
     async.series([
         function _buildFiles(buildFilesDone) {
             var parts;
@@ -92,6 +92,7 @@ Moonboots.prototype.build = function () {
                 return buildFilesDone();
             }
             fs.readdir(self.config.buildDirectory, function (err, files) {
+                self.timing('reading buildDirectory start');
                 if (err) {
                     self.config.buildDirectory = undefined;
                     return buildFilesDone();
@@ -126,7 +127,10 @@ Moonboots.prototype.build = function () {
                         });
                     }
                     next();
-                }, function () { buildFilesDone(); });
+                }, function () {
+                    self.timing('reading buildDirectory finish');
+                    buildFilesDone();
+                });
             });
         },
         function _buildBundles(buildBundlesDone) {
@@ -136,6 +140,7 @@ Moonboots.prototype.build = function () {
             }
             async.parallel([
                 function _buildCSS(buildCSSDone) {
+                    self.timing('build css start');
                     //If we're rebuilding on each request we just have to set the hash
                     if (!self.config.cache) {
                         self.result.css.hash = 'dev';
@@ -199,6 +204,7 @@ Moonboots.prototype.build = function () {
             ], createBuildFilesDone);
         }
     ], function () {
+        self.timing('build finish');
         self.emit('ready');
     });
 };
@@ -207,9 +213,16 @@ Moonboots.prototype.build = function () {
 Moonboots.prototype.bundleCSS = function (setHash, done) {
     var self = this;
     async.series([
-        self.config.beforeBuildCSS,
+        function _beforeBuildCSS(next) {
+            self.timing('beforeBuildCSS start');
+            self.config.beforeBuildCSS(function (err) {
+                self.timing('beforeBuildCSS finish');
+                next(err);
+            });
+        },
         function _buildCSS(next) {
             var csssha;
+            self.timing('buildCSS start');
             self.result.css.source = concatFiles(self.config.stylesheets);
             if (setHash) {
                 csssha = crypto.createHash('sha1'); // we'll calculate this to know whether to change the filename
@@ -219,6 +232,7 @@ Moonboots.prototype.bundleCSS = function (setHash, done) {
             if (self.config.minify) {
                 self.result.css.source = cssmin(self.result.css.source);
             }
+            self.timing('buildCSS finish');
             next();
         }
     ], function _bundleCSSDone() {
@@ -231,11 +245,19 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
     var self = this;
     var jssha = crypto.createHash('sha1'); // we'll calculate this to know whether to change the filename
     async.series([
-        self.config.beforeBuildJS,
+        function _beforeBuildJS(next) {
+            self.timing('beforeBuildJS start');
+            self.config.beforeBuildJS(function (err) {
+                self.timing('beforeBuildJS finish');
+                next(err);
+            });
+        },
         function _concatLibs(next) {
             //Start w/ external libraries
+            self.timing('build libraries start');
             self.result.js.source = concatFiles(self.config.libraries);
             jssha.update(self.result.js.source);
+            self.timing('build libraries finish');
             next();
         },
         function (next) {
@@ -247,7 +269,9 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
                 self.result.js.hash = jssha.digest('hex').slice(0, 8);
             }
             if (self.config.minify) {
+                self.timing('minify start');
                 self.result.js.source = UglifyJS.minify(self.result.js.source, {fromString: true}).code;
+                self.timing('minify finish');
             }
             next();
         }
@@ -261,6 +285,7 @@ Moonboots.prototype.browserify = function (setHash, done) {
     var modules, args, bundle, hashBundle;
     var self = this;
 
+    self.emit('timing', 'browserify start');
     // Create two bundles:
     // bundle is to get the actual js source from a browserify bundle
     // hashBundle is to create a copy of our other bundle (with the same requires and transforms)
@@ -306,7 +331,7 @@ Moonboots.prototype.browserify = function (setHash, done) {
             bundle.bundle(self.config.browserify, function (err, js) {
                 self.result.js.source = self.result.js.source + js;
                 if (err) {
-                    self.emit('log', ['error', 'moonboots'], err);
+                    self.emit(['moonboots', 'error'], err);
                     if (self.config.developmentMode) {
                         self.result.js.source = 'document.write("<pre style=\'background:#ECFOF2; color:#444; padding: 20px\' >' + errorTrace(err) + '</pre>");';
                     }
@@ -327,7 +352,10 @@ Moonboots.prototype.browserify = function (setHash, done) {
                 next();
             }));
         },
-    ], done);
+    ], function (err) {
+        self.timing('browserify finish');
+        done(err);
+    });
 };
 
 /*
@@ -369,6 +397,12 @@ Moonboots.prototype.htmlContext = function () {
 //Return htmlSource, which never changes
 Moonboots.prototype.htmlSource = function () {
     return this.result.html.source;
+};
+
+Moonboots.prototype.timing = function (message) {
+    if (this.config.timingMode) {
+        this.emit('log', ['moonboots', 'timing', 'debug'], message, Date.now());
+    }
 };
 
 /*
