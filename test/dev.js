@@ -42,8 +42,8 @@ Lab.experiment('development mode', function () {
     Lab.test('htmlContext', function (done) {
         var context = moonboots.htmlContext();
         Lab.expect(context).to.have.keys('jsFileName', 'cssFileName');
-        Lab.expect(context.jsFileName).to.equal('app.dev.js');
-        Lab.expect(context.cssFileName).to.equal('app.dev.css');
+        Lab.expect(context.jsFileName).to.equal('app.nonCached.js');
+        Lab.expect(context.cssFileName).to.equal('app.nonCached.css');
         done();
     });
     Lab.test('js rebuilds every request', function (done) {

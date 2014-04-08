@@ -143,7 +143,7 @@ Moonboots.prototype.build = function () {
                     self.timing('build css start');
                     //If we're rebuilding on each request we just have to set the hash
                     if (!self.config.cache) {
-                        self.result.css.hash = 'dev';
+                        self.result.css.hash = 'nonCached';
                         return buildCSSDone();
                     }
                     self.bundleCSS(true, buildCSSDone);
@@ -151,7 +151,7 @@ Moonboots.prototype.build = function () {
                 function _buildJS(buildJSDone) {
                     //If we're rebuilding on each request we just have to set the hash
                     if (!self.config.cache) {
-                        self.result.js.hash = 'dev';
+                        self.result.js.hash = 'nonCached';
                         return buildJSDone();
                     }
                     self.bundleJS(true, buildJSDone);
