@@ -109,16 +109,15 @@ Lab.experiment('transforms', function () {
     });
 });
 
-Lab.experiment('beforeBuildJS', function () {
+Lab.experiment('sync beforeBuildJS', function () {
     var beforeRan = false;
     Lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app',
             minify: false,
-            beforeBuildJS: function (next) {
+            beforeBuildJS: function () {
                 beforeRan = true;
-                next();
             }
         };
         moonboots = new Moonboots(options);

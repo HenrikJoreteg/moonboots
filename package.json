@@ -1,7 +1,7 @@
 {
   "name": "moonboots",
   "description": "A set of tools and conventions for building/serving clientside apps with node.js",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "author": "Henrik Joreteg <henrik@andyet.net>",
   "bugs": "https://github.com/henrikjoreteg/moonboots/issues",
   "contributors": [
