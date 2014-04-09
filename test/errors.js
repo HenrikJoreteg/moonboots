@@ -64,7 +64,7 @@ Lab.experiment('error states', function () {
         moonboots.on('ready', function () {
             moonboots.jsSource(function (err, source) {
                 Lab.expect(source.indexOf('document.write'), 'inline error').to.equal(0);
-                Lab.expect(source.indexOf('module &quot;foo&quot; not found'), 'inline error').to.not.equal(-1);
+                Lab.expect(source.indexOf("Cannot find module 'foo'"), 'inline error').to.not.equal(-1);
                 done();
             });
         });
