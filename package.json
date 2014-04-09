@@ -1,36 +1,51 @@
 {
-    "name": "moonboots",
-    "description": "A set of tools and conventions for building/serving clientside apps with node.js",
-    "author": "Henrik Joreteg <henrik@andyet.net>",
-    "repository": {
-        "type": "git",
-        "url": "git@github.com:HenrikJoreteg/moonboots.git"
+  "name": "moonboots",
+  "description": "A set of tools and conventions for building/serving clientside apps with node.js",
+  "version": "2.0.0",
+  "author": "Henrik Joreteg <henrik@andyet.net>",
+  "bugs": "https://github.com/henrikjoreteg/moonboots/issues",
+  "contributors": [
+    {
+      "name": "Philip Roberts",
+      "email": "phil@latentflip.com"
     },
-    "contributors": [
-        {
-            "name": "Philip Roberts",
-            "email": "phil@latentflip.com"
-        },
-        {
-            "name": "Luke Karrys",
-            "email": "luke@andyet.net"
-        }
-    ],
-    "version": "1.2.4",
-    "dependencies": {
-        "async": "0.2.9",
-        "uglify-js": "2.4.0",
-        "browserify": "2.20.1",
-        "bundle-metadata": "1.0.0",
-        "module-deps": "0.12.0",
-        "cssmin": "0.4.1"
+    {
+      "name": "Luke Karrys",
+      "email": "luke@andyet.net"
     },
-    "devDependencies": {
-        "express": "3.x.x",
-        "backbone": "1.0.0"
-    },
-    "jshintConfig": {
-        "boss": true,
-        "indent": 4
+    {
+      "name": "Michael Garvin",
+      "email": "gar@comrade.us"
     }
+  ],
+  "dependencies": {
+    "async": "^0.7.0",
+    "browserify": "^3.38.0",
+    "bundle-metadata": "^1.0.1",
+    "cssmin": "^0.4.1",
+    "module-deps": "^1.8.0",
+    "uglify-js": "^2.4.0"
+  },
+  "devDependencies": {
+    "backbone": "^1.0.0",
+    "lab": "^3.0.0",
+    "precommit-hook": "^0.3.10",
+    "through": "^2.3.4"
+  },
+  "homepage": "https://github.com/henrikjoreteg/moonboots",
+  "keywords": [
+    "commonjs",
+    "clientside",
+    "browserify",
+    "singlepage"
+  ],
+  "scripts": {
+      "test": "make test"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:HenrikJoreteg/moonboots.git"
+  }
 }

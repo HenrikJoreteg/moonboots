@@ -1,0 +1,5 @@
+node_modules
+sample
+fixtures/build1/app.deadbeef.min.js
+fixtures/app/app.js
+fixtures/app/badapp.js
