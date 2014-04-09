@@ -275,7 +275,17 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
             }
             next();
         }
-    ], function _bundleJSDone() {
+    ], function _bundleJSDone(err) {
+        if (err) {
+            self.emit(['moonboots', 'error'], err);
+            if (self.config.developmentMode) {
+                self.result.js.source = errorTrace(err);
+            }
+        }
+        // If our _beforeBuildJS errors then we'll never get a source
+        if (!self.result.js.source) {
+            self.result.js.source = '';
+        }
         done(null, self.result.js.source);
     });
 };
@@ -330,12 +340,6 @@ Moonboots.prototype.browserify = function (setHash, done) {
             // run main bundle function
             bundle.bundle(self.config.browserify, function (err, js) {
                 self.result.js.source = self.result.js.source + js;
-                if (err) {
-                    self.emit(['moonboots', 'error'], err);
-                    if (self.config.developmentMode) {
-                        self.result.js.source = 'document.write("<pre style=\'background:#ECFOF2; color:#444; padding: 20px\' >' + errorTrace(err) + '</pre>");';
-                    }
-                }
                 next(err);
             });
         },
@@ -430,6 +434,11 @@ function scriptTag(filename) {
 
 function errorTrace(err) {
     var trace;
-    trace = JSON.stringify(err);
-    return trace.split('\n').join('<br>').replace(/"/g, '&quot;');
+    if (err.stack) {
+        trace = err.stack;
+    } else {
+        trace = JSON.stringify(err);
+    }
+    trace = trace.split('\n').join('<br>').replace(/"/g, '&quot;');
+    return 'document.write("<pre style=\'background:#ECFOF2; color:#444; padding: 20px\'>' + trace + '</pre>");';
 }

@@ -64,6 +64,7 @@ Lab.experiment('error states', function () {
         moonboots.on('ready', function () {
             moonboots.jsSource(function (err, source) {
                 Lab.expect(source.indexOf('document.write'), 'inline error').to.equal(0);
+                Lab.expect(source.indexOf('module &quot;foo&quot; not found'), 'inline error').to.not.equal(-1);
                 done();
             });
         });
@@ -75,6 +76,59 @@ Lab.experiment('error states', function () {
         moonboots.on('ready', function () {
             moonboots.jsSource(function (err, source) {
                 Lab.expect(source.indexOf('document.write'), 'inline error').to.equal(-1);
+                done();
+            });
+        });
+    });
+    Lab.test('beforeBuildJS error in development mode', function (done) {
+        var errMsg = 'This is a before build error!';
+        moonboots = new Moonboots({
+            main: __dirname + '/../fixtures/app/app.js',
+            developmentMode: true,
+            beforeBuildJS: function (cb) {
+                cb(new Error(errMsg));
+            }
+        });
+        moonboots.on('ready', function () {
+            moonboots.jsSource(function (err, source) {
+                Lab.expect(source.indexOf('document.write'), 'inline error').to.equal(0);
+                Lab.expect(source.indexOf(errMsg), 'inline error').to.not.equal(-1);
+                done();
+            });
+        });
+    });
+    Lab.test('beforeBuildJS errors without an error object', function (done) {
+        var errMsg = 'This is a before build error!';
+        var errMsgKey = 'errorMessage';
+        moonboots = new Moonboots({
+            main: __dirname + '/../fixtures/app/app.js',
+            developmentMode: true,
+            beforeBuildJS: function (cb) {
+                var err = {};
+                err[errMsgKey] = errMsg;
+                cb(err);
+            }
+        });
+        moonboots.on('ready', function () {
+            moonboots.jsSource(function (err, source) {
+                Lab.expect(source.indexOf('document.write'), 'inline error').to.equal(0);
+                Lab.expect(source.indexOf(errMsg), 'inline error').to.not.equal(-1);
+                Lab.expect(source.indexOf(errMsgKey), 'inline error').to.not.equal(-1);
+                done();
+            });
+        });
+    });
+    Lab.test('beforeBuildJS error not in development mode', function (done) {
+        var errMsg = 'This is a before build error!';
+        moonboots = new Moonboots({
+            main: __dirname + '/../fixtures/app/app.js',
+            beforeBuildJS: function (cb) {
+                cb(new Error(errMsg));
+            }
+        });
+        moonboots.on('ready', function () {
+            moonboots.jsSource(function (err, source) {
+                Lab.expect(source, 'inline error').to.equal('');
                 done();
             });
         });
