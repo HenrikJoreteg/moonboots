@@ -40,7 +40,7 @@ function Moonboots(opts) {
 
     // Were we'll store generated source code, etc.
     this.result = {
-        js: {ext: 'js'},
+        js: {ext: 'js', source: ''},
         css: {ext: 'css'},
         html: {}
     };
@@ -277,14 +277,10 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
         }
     ], function _bundleJSDone(err) {
         if (err) {
-            self.emit(['moonboots', 'error'], err);
+            self.emit('log', ['moonboots', 'error'], err);
             if (self.config.developmentMode) {
                 self.result.js.source = errorTrace(err);
             }
-        }
-        // If our _beforeBuildJS errors then we'll never get a source
-        if (!self.result.js.source) {
-            self.result.js.source = '';
         }
         done(null, self.result.js.source);
     });
