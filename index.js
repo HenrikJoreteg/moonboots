@@ -215,10 +215,16 @@ Moonboots.prototype.bundleCSS = function (setHash, done) {
     async.series([
         function _beforeBuildCSS(next) {
             self.timing('beforeBuildCSS start');
-            self.config.beforeBuildCSS(function (err) {
+            if (self.config.beforeBuildCSS.length) {
+                self.config.beforeBuildCSS(function (err) {
+                    self.timing('beforeBuildCSS finish');
+                    next(err);
+                });
+            } else {
+                self.config.beforeBuildCSS();
                 self.timing('beforeBuildCSS finish');
-                next(err);
-            });
+                next();
+            }
         },
         function _buildCSS(next) {
             var csssha;
@@ -247,10 +253,16 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
     async.series([
         function _beforeBuildJS(next) {
             self.timing('beforeBuildJS start');
-            self.config.beforeBuildJS(function (err) {
+            if (self.config.beforeBuildJS.length) {
+                self.config.beforeBuildJS(function (err) {
+                    self.timing('beforeBuildJS finish');
+                    next(err);
+                });
+            } else {
+                self.config.beforeBuildJS();
                 self.timing('beforeBuildJS finish');
-                next(err);
-            });
+                next();
+            }
         },
         function _concatLibs(next) {
             //Start w/ external libraries

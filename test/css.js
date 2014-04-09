@@ -71,7 +71,7 @@ Lab.experiment('css with .css already added', function () {
 });
 
 
-Lab.experiment('beforeBuildCSS', function () {
+Lab.experiment('async beforeBuildCSS', function () {
     var beforeRan = false;
     Lab.before(function (done) {
         var no_minify = {
@@ -81,6 +81,29 @@ Lab.experiment('beforeBuildCSS', function () {
             beforeBuildCSS: function (next) {
                 beforeRan = true;
                 next();
+            },
+            stylesheets: [
+                __dirname + '/../fixtures/stylesheets/style.css'
+            ]
+        };
+        moonboots = new Moonboots(no_minify);
+        moonboots.on('ready', done);
+    });
+    Lab.test('ran', function (done) {
+        Lab.expect(beforeRan).to.equal(true);
+        done();
+    });
+});
+
+Lab.experiment('sync beforeBuildCSS', function () {
+    var beforeRan = false;
+    Lab.before(function (done) {
+        var no_minify = {
+            main: __dirname + '/../fixtures/app/app.js',
+            cssFileName: 'app',
+            minify: false,
+            beforeBuildCSS: function () {
+                beforeRan = true;
             },
             stylesheets: [
                 __dirname + '/../fixtures/stylesheets/style.css'
