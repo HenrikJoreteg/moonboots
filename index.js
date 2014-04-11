@@ -303,7 +303,7 @@ Moonboots.prototype.browserify = function (setHash, done) {
     var modules, args, bundle, hashBundle;
     var self = this;
 
-    self.emit('timing', 'browserify start');
+    self.timing('browserify start');
     // Create two bundles:
     // bundle is to get the actual js source from a browserify bundle
     // hashBundle is to create a copy of our other bundle (with the same requires and transforms)
