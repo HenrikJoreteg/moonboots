@@ -103,7 +103,8 @@ Sourcemaps let you send the actual code to the browser along with a mapping to t
 
 ## Full example
 
-For a working example, check out [moonboots_hapi](https://npmjs.org/package/moonboots_hapi)
+For a working example, check out [moonboots-hapi](https://github.com/wraithgar/moonboots-hapi) or [moonboots-express](https://github.com/lukekarrys/moonboots-express) or even [moonboots-static](https://github.com/lukekarrys/moonboots-static)
+
 
 ## License
 
