@@ -30,8 +30,8 @@ You grab your moonboots and pass it a config. Then tell your http library which 
 That's it.
 
 ```js
-var express = require('express'),
-var Moonboots = require('moonboots'),
+var express = require('express');
+var Moonboots = require('moonboots');
 var app = express();
 
 // configure our app
