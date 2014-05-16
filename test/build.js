@@ -92,7 +92,7 @@ Lab.experiment('Files get written to build directory', function () {
                     __dirname + '/../fixtures/stylesheets/style.css'
                 ],
                 libraries: [
-                    __dirname + '/../fixtures/libraries/badlib.js',
+                    __dirname + '/../fixtures/libraries/iife-no-semicolon.js',
                     __dirname + '/../fixtures/libraries/lib.js'
                 ]
             };
@@ -122,7 +122,7 @@ Lab.experiment('Files get written to build directory', function () {
         Lab.expect(jsFileName).to.equal('app.4cec31a9.min.js');
         fs.readFile(filePath, 'utf8', function (err) {
             Lab.expect(err).to.not.be.ok;
-            // Test that badlib.js doesn't introduce a parsing bug
+            // Test that iife-no-semicolon.js doesn't introduce a parsing bug
             // via a (function () {…})\n(function () {…}) sequence
             Lab.expect(function () { require(filePath); }).to.not.throw();
             done();
