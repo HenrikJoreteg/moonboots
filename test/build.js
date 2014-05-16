@@ -90,6 +90,10 @@ Lab.experiment('Files get written to build directory', function () {
                 buildDirectory: buildDir,
                 stylesheets: [
                     __dirname + '/../fixtures/stylesheets/style.css'
+                ],
+                libraries: [
+                    __dirname + '/../fixtures/libraries/badlib.js',
+                    __dirname + '/../fixtures/libraries/lib.js'
                 ]
             };
             moonboots = new Moonboots(options);
@@ -99,7 +103,7 @@ Lab.experiment('Files get written to build directory', function () {
     Lab.after(function (done) {
         async.series([
             function (next) {
-                fs.unlink(path.join(buildDir, 'app.882ddd9b.min.js'), next);
+                fs.unlink(path.join(buildDir, 'app.4cec31a9.min.js'), next);
             },
             function (next) {
                 fs.unlink(path.join(buildDir, 'app.38ea6c96.min.css'), next);
@@ -114,9 +118,13 @@ Lab.experiment('Files get written to build directory', function () {
     });
     Lab.test('js file was written', function (done) {
         var jsFileName = moonboots.jsFileName();
-        Lab.expect(jsFileName).to.equal('app.882ddd9b.min.js');
-        fs.readFile(path.join(buildDir, jsFileName), 'utf8', function (err) {
+        var filePath = path.join(buildDir, jsFileName);
+        Lab.expect(jsFileName).to.equal('app.4cec31a9.min.js');
+        fs.readFile(filePath, 'utf8', function (err) {
             Lab.expect(err).to.not.be.ok;
+            // Test that badlib.js doesn't introduce a parsing bug
+            // via a (function () {…})\n(function () {…}) sequence
+            Lab.expect(function () { require(filePath); }).to.not.throw();
             done();
         });
     });

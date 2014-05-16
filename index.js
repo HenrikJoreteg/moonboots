@@ -347,6 +347,9 @@ Moonboots.prototype.browserify = function (setHash, done) {
         function (next) {
             // run main bundle function
             bundle.bundle(self.config.browserify, function (err, js) {
+                if (self.result.js.source.trim().slice(-1) !== ';') {
+                    js = ';' + js;
+                }
                 self.result.js.source = self.result.js.source + js;
                 next(err);
             });
@@ -428,7 +431,14 @@ module.exports = Moonboots;
 // a few helpers
 function concatFiles(arrayOfFiles) {
     return arrayOfFiles.map(function (fileName) {
-        return fs.readFileSync(fileName);
+        var source = fs.readFileSync(fileName, 'utf8');
+        if (path.extname(fileName) !== '.js') {
+            return source;
+        }
+        if (source.trim().slice(-1) !== ';') {
+            source = source + ';';
+        }
+        return source;
     }).join('\n');
 }
 
