@@ -20,7 +20,7 @@
   ],
   "dependencies": {
     "async": "^0.7.0",
-    "browserify": "^3.0.0",
+    "browserify": "^4.2.1",
     "bundle-metadata": "^1.0.1",
     "cssmin": "^0.4.1",
     "module-deps": "^1.8.0",
