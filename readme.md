@@ -86,6 +86,8 @@ Available options that can be passed to Moonboots:
 
 Sourcemaps let you send the actual code to the browser along with a mapping to the individual module files. This makes it easier to debug, since you can get relevant line numbers that correspond to your actual source within your modules instead of the built bundle source.
 
+Please note that if you are using `libraries` your line numbers will be off, because that prepends those files to the main bundle.  If it is important for you to maintain line numbers in your source maps, consider using [browserify-shim](https://github.com/thlorenz/browserify-shim) in your transforms to include those non-commonjs files in your app
+
 ## Methods
 
 **moonboots.jsFileName()** - returns string of the current js filename.
