@@ -45,11 +45,13 @@ function Moonboots(opts) {
         html: {}
     };
 
-    //Set this but let an explicity set config.browserify.debug override in the next loop
-    this.config.browserify.debug = this.config.sourceMaps;
-
     for (item in opts) {
         this.config[item] = opts[item];
+    }
+
+    // Use sourceMaps option to set browserify.debug if its not set already
+    if (typeof this.config.browserify.debug === 'undefined') {
+        this.config.browserify.debug = this.config.sourceMaps;
     }
 
     //developmentMode forces minify to false and never build no matter what
