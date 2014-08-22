@@ -243,7 +243,10 @@ Moonboots.prototype.bundleCSS = function (setHash, done) {
             self.timing('buildCSS finish');
             next();
         }
-    ], function _bundleCSSDone() {
+    ], function _bundleCSSDone(err) {
+        if (err) {
+            self.emit('log', ['moonboots', 'error'], err);
+        }
         done(null, self.result.css.source);
     });
 };
