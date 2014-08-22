@@ -117,3 +117,26 @@ Lab.experiment('sync beforeBuildCSS', function () {
         done();
     });
 });
+
+Lab.experiment('bad css', function () {
+    Lab.before(function (done) {
+        var bad_css = {
+            main: __dirname + '/../fixtures/app/app.js',
+            cssFileName: 'app',
+            stylesheets: [
+                __dirname + '/../fixtures/stylesheets/style.css'
+            ],
+            beforeBuildCSS: function (done) {
+                done('Could not build css');
+            }
+        };
+        moonboots = new Moonboots(bad_css);
+        moonboots.on('ready', done);
+    });
+    Lab.test('empty css, no crashing', function (done) {
+        moonboots.cssSource(function (err, css) {
+            Lab.expect(css, 'css source').to.equal(undefined);
+            done();
+        });
+    });
+});
