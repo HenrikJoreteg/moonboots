@@ -313,7 +313,7 @@ Moonboots.prototype.browserify = function (setHash, done) {
     // bundle is to get the actual js source from a browserify bundle
     // hashBundle is to create a copy of our other bundle (with the same requires and transforms)
     // so we can use its resolve fn to get a predictable hash from module-deps
-    bundle = browserify();
+    bundle = browserify(self.config.browserify);
     if (setHash) {
         hashBundle = browserify();
     }
@@ -351,7 +351,7 @@ Moonboots.prototype.browserify = function (setHash, done) {
     async.series([
         function (next) {
             // run main bundle function
-            bundle.bundle(self.config.browserify, function (err, js) {
+            bundle.bundle(function (err, js) {
                 if (self.result.js.source.trim().slice(-1) !== ';') {
                     js = ';' + js;
                 }
