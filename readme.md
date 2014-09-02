@@ -64,7 +64,7 @@ app.listen(3000);
 
 Available options that can be passed to Moonboots:
 
-- `main` (required, filepath) - The main entry point of your client app. Browserify uses this build out your dependency tree.
+- `main` (required, filepath) - The main entry point of your client app. Browserify uses this to build out your dependency tree.
 - `libraries` (optional, array of file paths, default: []) - An array of paths of JS files to concatenate and include before any CommonJS bundled code. This is useful for stuff like jQuery and jQuery plugins. Note that they will be included in the order specified. So if you're including a jQuery plugin, you'd better be sure that jQuery is listed first.
 - `stylesheets` (optional, array of file paths, default: []) - An array of CSS files to concatenate
 - `jsFileName` (optional, string, default: app) - the name of the JS file that will be built
