@@ -1,10 +1,8 @@
 # moonboots
 
-A set of conventions and tools for building, bundling and serving single page apps with node.js and express.js.
+Moonboots makes it incredibly easy to jump into single-page-app development by encapsulating a set of conventions and tools for building, bundling, and serving SPAs with node.js.
 
-The bulk of the awesome bundling of CommonJS modules for client use is done using [browserify](http://browserify.org/).
-
-This just gives us a structured way to include non-CommonJS libraries, work in development mode and agressively cache built JS and CSS files for production.
+Powered by [browserify](http://browserify.org/), moonboots gives us a structured way to include non-CommonJS libraries, work in development mode and agressively cache built JS and CSS files for production.
 
 
 ## What it does
@@ -64,7 +62,7 @@ app.listen(3000);
 
 Available options that can be passed to Moonboots:
 
-- `main` (required, filepath) - The main entry point of your client app. Browserify uses this build out your dependency tree.
+- `main` (required, filepath) - The main entry point of your client app. Browserify uses this to build out your dependency tree.
 - `libraries` (optional, array of file paths, default: []) - An array of paths of JS files to concatenate and include before any CommonJS bundled code. This is useful for stuff like jQuery and jQuery plugins. Note that they will be included in the order specified. So if you're including a jQuery plugin, you'd better be sure that jQuery is listed first.
 - `stylesheets` (optional, array of file paths, default: []) - An array of CSS files to concatenate
 - `jsFileName` (optional, string, default: app) - the name of the JS file that will be built
