@@ -27,7 +27,7 @@ function Moonboots(opts) {
         stylesheets: [],
         jsFileName: 'app',
         cssFileName: 'styles',
-        browserify: {}, // overridable browerify options
+        browserify: {}, // overridable browserify options
         beforeBuildJS: function (cb) { cb(); },
         beforeBuildCSS: function (cb) { cb(); },
         sourceMaps: false, //turns on browserify debug
