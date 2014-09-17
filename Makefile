@@ -1,5 +1,5 @@
 test:
-		@node node_modules/lab/bin/lab -t 100
+		@node node_modules/lab/bin/lab -t 100 -m 20000
 test-no-cov:
 		@node node_modules/lab/bin/lab
 test-cov-html:
