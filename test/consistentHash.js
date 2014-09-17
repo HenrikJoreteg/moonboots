@@ -42,7 +42,7 @@ Lab.experiment('Hash is the same', function () {
             var js = results.map(function (r) {
                 return r[1];
             });
-            Lab.expect(filenames[0]).to.equal('app.f21e12fd.js');
+            Lab.expect(filenames[0]).to.equal('app.1f7b06e7.js');
             Lab.expect(arrEqual(filenames)).to.equal(true);
             Lab.expect(arrEqual(js)).to.equal(true);
             done();

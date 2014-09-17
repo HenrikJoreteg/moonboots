@@ -306,7 +306,7 @@ Moonboots.prototype.browserify = function (done) {
     var self = this;
 
     self.timing('browserify start');
-    bundle = browserify();
+    bundle = browserify(self.config.browserify);
 
     // handle module folder that you want to be able to require without relative paths.
     if (self.config.modulesDir) {
@@ -335,7 +335,7 @@ Moonboots.prototype.browserify = function (done) {
     async.series([
         function (next) {
             // run main bundle function
-            bundle.bundle(self.config.browserify, function (err, js) {
+            bundle.bundle(function (err, js) {
                 if (self.result.js.source.trim().slice(-1) !== ';') {
                     js = ';' + js;
                 }
