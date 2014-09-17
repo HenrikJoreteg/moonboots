@@ -27,7 +27,7 @@ Lab.experiment('error states', function () {
         });
         moonboots.on('ready', function () {
             var context = moonboots.htmlContext();
-            Lab.expect(context.jsFileName).to.equal('app.882ddd9b.min.js');
+            Lab.expect(context.jsFileName).to.equal('app.794c89f5.min.js');
             done();
         });
     });
@@ -41,7 +41,7 @@ Lab.experiment('error states', function () {
         });
         moonboots.on('ready', function () {
             var context = moonboots.htmlContext();
-            Lab.expect(context.jsFileName).to.equal('app.882ddd9b.min.js');
+            Lab.expect(context.jsFileName).to.equal('app.794c89f5.min.js');
             done();
         });
     });
@@ -52,7 +52,7 @@ Lab.experiment('error states', function () {
         });
         moonboots.on('ready', function () {
             var context = moonboots.htmlContext();
-            Lab.expect(context.jsFileName).to.equal('app.882ddd9b.min.js');
+            Lab.expect(context.jsFileName).to.equal('app.248957fa.min.js');
             done();
         });
     });
@@ -64,7 +64,7 @@ Lab.experiment('error states', function () {
         moonboots.on('ready', function () {
             moonboots.jsSource(function (err, source) {
                 Lab.expect(source.indexOf('document.write'), 'inline error').to.equal(0);
-                Lab.expect(source.indexOf("Error: module &quot;foo&quot; not found"), 'inline error').to.not.equal(-1);
+                Lab.expect(source.indexOf("Error: Cannot find module 'does-not-exist' from"), 'inline error').to.not.equal(-1);
                 done();
             });
         });
