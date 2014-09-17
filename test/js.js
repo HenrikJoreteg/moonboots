@@ -13,7 +13,7 @@ Lab.experiment('js with default options', function () {
         moonboots.on('ready', done);
     });
     Lab.test('filename', function (done) {
-        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal('app.882ddd9b.min.js');
+        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal('app.321ef2c9.min.js');
         done();
     });
     /*
@@ -35,7 +35,7 @@ Lab.experiment('js with no minify', function () {
         moonboots.on('ready', done);
     });
     Lab.test('filename', function (done) {
-        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal('app.882ddd9b.js');
+        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal('app.321ef2c9.js');
         done();
     });
     /*
@@ -56,7 +56,7 @@ Lab.experiment('js with .js already added', function () {
         moonboots.on('ready', done);
     });
     Lab.test('filename', function (done) {
-        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal('app.882ddd9b.min.js');
+        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal('app.321ef2c9.min.js');
         done();
     });
 });

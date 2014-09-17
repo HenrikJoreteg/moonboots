@@ -27,7 +27,7 @@ Lab.experiment('error states', function () {
         });
         moonboots.on('ready', function () {
             var context = moonboots.htmlContext();
-            Lab.expect(context.jsFileName).to.equal('app.882ddd9b.min.js');
+            Lab.expect(context.jsFileName).to.equal('app.321ef2c9.min.js');
             done();
         });
     });
@@ -41,7 +41,7 @@ Lab.experiment('error states', function () {
         });
         moonboots.on('ready', function () {
             var context = moonboots.htmlContext();
-            Lab.expect(context.jsFileName).to.equal('app.882ddd9b.min.js');
+            Lab.expect(context.jsFileName).to.equal('app.321ef2c9.min.js');
             done();
         });
     });
@@ -52,7 +52,7 @@ Lab.experiment('error states', function () {
         });
         moonboots.on('ready', function () {
             var context = moonboots.htmlContext();
-            Lab.expect(context.jsFileName).to.equal('app.882ddd9b.min.js');
+            Lab.expect(context.jsFileName).to.equal('app.9f5c9a18.min.js');
             done();
         });
     });
