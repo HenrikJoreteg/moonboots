@@ -315,7 +315,7 @@ Moonboots.prototype.browserify = function (setHash, done) {
     // so we can use its resolve fn to get a predictable hash from module-deps
     bundle = browserify(self.config.browserify);
     if (setHash) {
-        hashBundle = browserify();
+        hashBundle = browserify(self.config.browserify);
     }
 
     // handle module folder that you want to be able to require without relative paths.
