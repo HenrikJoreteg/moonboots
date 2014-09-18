@@ -24,6 +24,25 @@ Lab.experiment('js with default options', function () {
    */
 });
 
+Lab.experiment('js with uglify options', function () {
+    Lab.before(function (done) {
+        var options = {
+            main: __dirname + '/../fixtures/app/app.js',
+            jsFileName: 'app',
+            uglify: {
+                mangle: false
+            }
+        };
+
+        moonboots = new Moonboots(options);
+        moonboots.on('ready', done);
+    });
+    Lab.test('filename', function (done) {
+        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal('app.882ddd9b.min.js');
+        done();
+    });
+});
+
 Lab.experiment('js with no minify', function () {
     Lab.before(function (done) {
         var options = {
