@@ -80,7 +80,7 @@ Lab.experiment('modulesDir', function () {
 });
 
 Lab.experiment('transforms', function () {
-    var transformRan = false;
+    var transformRan = 0;
     Lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
@@ -89,7 +89,7 @@ Lab.experiment('transforms', function () {
                 transforms: [
                     function () {
                         var through = require('through');
-                        transformRan = true;
+                        transformRan++;
                         return through(
                             function write() {},
                             function _end() {
@@ -104,7 +104,7 @@ Lab.experiment('transforms', function () {
         moonboots.on('ready', done);
     });
     Lab.test('ran', function (done) {
-        Lab.expect(transformRan).to.equal(true);
+        Lab.expect(transformRan).to.equal(1);
         done();
     });
 });
