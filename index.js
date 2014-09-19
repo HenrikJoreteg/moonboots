@@ -317,9 +317,9 @@ Moonboots.prototype.browserify = function (setHash, done) {
     // bundle is to get the actual js source from a browserify bundle
     // hashBundle is to create a copy of our other bundle (with the same requires and transforms)
     // so we can use its resolve fn to get a predictable hash from module-deps
-    bundle = browserify();
+    bundle = browserify(self.config.browserify);
     if (setHash) {
-        hashBundle = browserify();
+        hashBundle = browserify(self.config.browserify);
     }
 
     // handle module folder that you want to be able to require without relative paths.
