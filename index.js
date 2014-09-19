@@ -28,6 +28,7 @@ function Moonboots(opts) {
         jsFileName: 'app',
         cssFileName: 'styles',
         browserify: {}, // overridable browserify options
+        uglify: {}, // overridable uglify options
         beforeBuildJS: function (cb) { cb(); },
         beforeBuildCSS: function (cb) { cb(); },
         sourceMaps: false, //turns on browserify debug
@@ -48,6 +49,9 @@ function Moonboots(opts) {
     for (item in opts) {
         this.config[item] = opts[item];
     }
+
+    // Uglify fromString must be true
+    this.config.uglify.fromString = true;
 
     // Use sourceMaps option to set browserify.debug if its not set already
     if (typeof this.config.browserify.debug === 'undefined') {
@@ -287,7 +291,7 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
             }
             if (self.config.minify) {
                 self.timing('minify start');
-                self.result.js.source = UglifyJS.minify(self.result.js.source, {fromString: true}).code;
+                self.result.js.source = UglifyJS.minify(self.result.js.source, self.config.uglify).code;
                 self.timing('minify finish');
             }
             next();
