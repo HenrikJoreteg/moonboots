@@ -128,6 +128,36 @@ Lab.experiment('transforms', function () {
     });
 });
 
+Lab.experiment('transform', function () {
+    var transformRan = 0;
+    Lab.before(function (done) {
+        var options = {
+            main: __dirname + '/../fixtures/app/app.js',
+            jsFileName: 'app',
+            browserify: {
+                transform: [
+                    function () {
+                        var through = require('through');
+                        transformRan++;
+                        return through(
+                            function write() {},
+                            function _end() {
+                                this.queue(null);
+                            }
+                        );
+                    }
+                ]
+            }
+        };
+        moonboots = new Moonboots(options);
+        moonboots.on('ready', done);
+    });
+    Lab.test('ran', function (done) {
+        Lab.expect(transformRan).to.equal(1);
+        done();
+    });
+});
+
 Lab.experiment('sync beforeBuildJS', function () {
     var beforeRan = false;
     Lab.before(function (done) {

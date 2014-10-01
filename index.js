@@ -340,8 +340,9 @@ Moonboots.prototype.browserify = function (setHash, done) {
     }
 
     // handle browserify transforms if passed
-    if (self.config.browserify.transforms) {
-        self.config.browserify.transforms.forEach(function (tr) {
+    if (self.config.browserify.transforms || self.config.browserify.transform) {
+        var transforms = self.config.browserify.transforms || self.config.browserify.transform;
+        transforms.forEach(function (tr) {
             bundle.transform(tr);
             if (setHash) {
                 hashBundle.transform(tr);
