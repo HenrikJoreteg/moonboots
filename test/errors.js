@@ -1,5 +1,6 @@
 var Lab = require('lab');
 var Moonboots = require('..');
+var domain = require('domain');
 var moonboots;
 
 Lab.experiment('error states', function () {
@@ -69,15 +70,18 @@ Lab.experiment('error states', function () {
             });
         });
     });
-    Lab.test('browserify error not in development mode', function (done) {
-        moonboots = new Moonboots({
-            main: __dirname + '/../fixtures/app/badapp.js'
-        });
-        moonboots.on('ready', function () {
-            moonboots.jsSource(function (err, source) {
-                Lab.expect(source.indexOf('document.write'), 'inline error').to.equal(-1);
-                done();
+    Lab.test('browserify error not in development mode should throw', function (done) {
+        var errDomain = domain.create();
+
+        errDomain.run(function () {
+            moonboots = new Moonboots({
+                main: __dirname + '/../fixtures/app/badapp.js'
             });
+        });
+
+        errDomain.on('error', function (e) {
+            Lab.expect(e.message).to.match(/not found/);
+            done();
         });
     });
     Lab.test('beforeBuildJS error in development mode', function (done) {
@@ -118,19 +122,22 @@ Lab.experiment('error states', function () {
             });
         });
     });
-    Lab.test('beforeBuildJS error not in development mode', function (done) {
+    Lab.test('beforeBuildJS error not in development mode should throw', function (done) {
+        var errDomain = domain.create();
         var errMsg = 'This is a before build error!';
-        moonboots = new Moonboots({
-            main: __dirname + '/../fixtures/app/app.js',
-            beforeBuildJS: function (cb) {
-                cb(new Error(errMsg));
-            }
-        });
-        moonboots.on('ready', function () {
-            moonboots.jsSource(function (err, source) {
-                Lab.expect(source, 'inline error').to.equal('');
-                done();
+
+        errDomain.run(function () {
+            moonboots = new Moonboots({
+                main: __dirname + '/../fixtures/app/app.js',
+                beforeBuildJS: function (cb) {
+                    cb(new Error(errMsg));
+                }
             });
+        });
+
+        errDomain.on('error', function (e) {
+            Lab.expect(e.message).to.equal(errMsg);
+            done();
         });
     });
 });

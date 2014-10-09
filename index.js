@@ -301,6 +301,8 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
             self.emit('log', ['moonboots', 'error'], err);
             if (self.config.developmentMode) {
                 self.result.js.source = errorTrace(err);
+            } else {
+                throw err;
             }
         }
         done(null, self.result.js.source);
