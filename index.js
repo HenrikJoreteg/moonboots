@@ -58,7 +58,11 @@ function Moonboots(opts) {
         this.config.browserify.debug = this.config.sourceMaps;
     }
 
-    //developmentMode forces minify to false and never build no matter what
+     // Ensure browserify transforms is set
+    if (typeof this.config.browserify.transforms === 'undefined') {
+        this.config.browserify.transforms = [];
+    }
+   //developmentMode forces minify to false and never build no matter what
     if (this.config.developmentMode) {
         this.config.minify = false;
         this.config.buildDirectory = undefined;
@@ -342,14 +346,12 @@ Moonboots.prototype.browserify = function (setHash, done) {
     }
 
     // handle browserify transforms if passed
-    if (self.config.browserify.transforms) {
-        self.config.browserify.transforms.forEach(function (tr) {
-            bundle.transform(tr);
-            if (setHash) {
-                hashBundle.transform(tr);
-            }
-        });
-    }
+    self.config.browserify.transforms.forEach(function (tr) {
+        bundle.transform(tr);
+        if (setHash) {
+            hashBundle.transform(tr);
+        }
+    });
 
     // add main import
     bundle.add(self.config.main);
@@ -370,9 +372,11 @@ Moonboots.prototype.browserify = function (setHash, done) {
                 return next();
             }
             // Get a predictable hash for the bundle
-            mdeps(self.config.main, {
-                resolve: hashBundle._resolve.bind(hashBundle)
-            })
+            var opts = {
+                resolve: hashBundle._resolve.bind(hashBundle),
+                transform: self.config.browserify.transforms
+            };
+            mdeps(self.config.main, opts)
             .pipe(meta().on('hash', function (hash) {
                 self.result.js.bundleHash = hash;
                 next();
