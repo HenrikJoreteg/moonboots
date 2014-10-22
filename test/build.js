@@ -9,7 +9,7 @@ var moonboots;
 
 Lab.experiment('files get read from buildDirectory', function () {
     var tmpHash = crypto.randomBytes(16).toString('hex');
-    var buildDir = os.tmpdir() + '/' + tmpHash;
+    var buildDir = path.join(os.tmpdir(), tmpHash);
     Lab.before(function (done) {
         async.series([
             function (next) {
@@ -80,7 +80,7 @@ Lab.experiment('files get read from buildDirectory', function () {
 
 Lab.experiment('Files get written to build directory', function () {
     var tmpHash = crypto.randomBytes(16).toString('hex');
-    var buildDir = os.tmpdir() + '/' + tmpHash;
+    var buildDir = path.join(os.tmpdir(), tmpHash);
     Lab.before(function (done) {
         fs.mkdir(buildDir, function () {
             var options = {
