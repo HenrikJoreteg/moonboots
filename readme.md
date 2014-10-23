@@ -8,8 +8,8 @@ Powered by [browserify](http://browserify.org/), moonboots gives us a structured
 ## What it does
 
 1. Saves us from re-inventing this process for each app.
-1. Let's a developer focus on building a great clientside experience, not boiler plate.
-1. Let's you use CommonJS modules to structure your clientside code.
+1. Lets a developer focus on building a great clientside experience, not boiler plate.
+1. Lets you use CommonJS modules to structure your clientside code.
 1. Manages clientside files during development so you can just write code.
 1. Compiles/minifies/uniquely named JS files (and CSS files optionally) containing your application allowing really aggressive caching (since the name will change if the app does).
 1. Plays nicely with [express.js](http://expressjs.com), [hapi.js](http://hapijs.com), or even straight [node http](http://nodejs.org/api/http.html)
