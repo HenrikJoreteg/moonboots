@@ -95,7 +95,7 @@ Please note that if you are using `libraries` your line numbers will be off, bec
 
 **moonboots.cssFileName()** - returns string of the current css filename.
 
-**moonboots.jsSource()** - returns concatenated (and optionally minified css stylesheets)
+**moonboots.cssSource()** - returns concatenated (and optionally minified css stylesheets)
 
 **moonboots.htmlSource()** - returns default html to serve that represents your compiled app w/ a script and optional style tag
 
