@@ -23,7 +23,7 @@ Powered by [browserify](http://browserify.org/), moonboots gives us a structured
 
 ## How to use it
 
-You grab your moonboots and pass it a config. Then tell your http library which urls to serve your single page app at.
+You grab your moonboots, pass it a config and listen for the `ready` event. Then tell your http library which urls to serve your single page app at.
 
 That's it.
 
@@ -43,18 +43,19 @@ var clientApp = new Moonboots({
     ]
 });
 
-app.get(clientApp.jsFileName(),
-    function (req, res) {
-        clientApp.jsSource(function (err, js) {
-            res.send(js);
-        })
-    }
-);
-app.get('/app*', clientApp.htmlSource());
+clientApp.on('ready', function () {
+    app.get(clientApp.jsFileName(),
+        function (req, res) {
+            clientApp.jsSource(function (err, js) {
+                res.send(js);
+            })
+        }
+    );
+    app.get('/app*', clientApp.htmlSource());
 
-// start listening for http requests
-app.listen(3000);
-
+    // start listening for http requests
+    app.listen(3000);
+});
 ```
 
 
@@ -71,8 +72,8 @@ Available options that can be passed to Moonboots:
   - `browserify.transforms` (optional, list, default: []) - list of transforms to apply to the browserify bundle, see [here](https://github.com/substack/node-browserify#btransformtr) for more details.
 - `uglify` (optional, object, default: {}) - options to pass directly into uglify, as detailed [here](https://github.com/mishoo/UglifyJS2)
 - `modulesDir` (optional, directory path, default: '') - directory path of modules to be directly requirable (without using relative require paths). For example if you've got some helper modules that are not on npm but you still want to be able to require directly by name, you can include them here. So you can, for example, put a modified version of backbone in here and still just `require('backbone')`.
-- `beforeBuildJS` (optional, function, default: nothing) - function to run before building the browserify bundle during development. This is useful for stuff like compiling clientside templates that need to be included in the bundle. If you specify a callback moonboots will wait for you to call it. If not, it will be run synchrnously (by the magic of Function.prototype.length).
-- `beforeBuildCSS` (optional, function, default: nothing) - function to run before concatenating your CSS files during development. This is useful for stuff like generating your CSS files from a preprocessor. If you specify a callback moonboots will wait for you to call it. If not, it will be run synchrnously (by the magic of Function.prototype.length).
+- `beforeBuildJS` (optional, function, default: nothing) - function to run before building the browserify bundle during development. This is useful for stuff like compiling clientside templates that need to be included in the bundle. If you specify a callback moonboots will wait for you to call it. If not, it will be run synchronously (by the magic of Function.prototype.length).
+- `beforeBuildCSS` (optional, function, default: nothing) - function to run before concatenating your CSS files during development. This is useful for stuff like generating your CSS files from a preprocessor. If you specify a callback moonboots will wait for you to call it. If not, it will be run synchronously (by the magic of Function.prototype.length).
 - `sourceMaps` (optional, boolean, default: false) - set to true to enable sourcemaps (sets browserify.debug to true)
 - `resourcePrefix` (optional, string, default: '/') - specify what dirname should be prefixed when generating html source. If you're serving the whole app statically you may need relative paths. So just passing resourcePrefix: '' would make the template render with `<script src="app.js"></script>` instead of `<script src="/app.js"></script>`.
 - `minify` (optional, boolean, default: true) - an option for whether to minify JS and CSS.
