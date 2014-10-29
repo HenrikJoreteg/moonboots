@@ -23,7 +23,7 @@ Powered by [browserify](http://browserify.org/), moonboots gives us a structured
 
 ## How to use it
 
-You grab your moonboots and pass it a config. Then tell your http library which urls to serve your single page app at.
+You grab your moonboots, pass it a config and listen for the `ready` event. Then tell your http library which urls to serve your single page app at.
 
 That's it.
 
@@ -43,18 +43,19 @@ var clientApp = new Moonboots({
     ]
 });
 
-app.get(clientApp.jsFileName(),
-    function (req, res) {
-        clientApp.jsSource(function (err, js) {
-            res.send(js);
-        })
-    }
-);
-app.get('/app*', clientApp.htmlSource());
+clientApp.on('ready', function () {
+    app.get(clientApp.jsFileName(),
+        function (req, res) {
+            clientApp.jsSource(function (err, js) {
+                res.send(js);
+            })
+        }
+    );
+    app.get('/app*', clientApp.htmlSource());
 
-// start listening for http requests
-app.listen(3000);
-
+    // start listening for http requests
+    app.listen(3000);
+});
 ```
 
 
