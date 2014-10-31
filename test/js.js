@@ -123,7 +123,25 @@ Lab.experiment('transforms', function () {
         moonboots.on('ready', done);
     });
     Lab.test('ran', function (done) {
-        Lab.expect(transformRan).to.equal(1);
+        Lab.expect(transformRan).to.equal(2);
+        done();
+    });
+});
+
+Lab.experiment('no transform - for coverage', function () {
+    var transformRan = 0;
+    Lab.before(function (done) {
+        var options = {
+            main: __dirname + '/../fixtures/app/app.js',
+            jsFileName: 'app',
+            browserify: {
+            }
+        };
+        moonboots = new Moonboots(options);
+        moonboots.on('ready', done);
+    });
+    Lab.test('ran', function (done) {
+        Lab.expect(transformRan).to.equal(0);
         done();
     });
 });

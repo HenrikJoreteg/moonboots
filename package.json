@@ -30,7 +30,8 @@
     "backbone": "^1.0.0",
     "lab": "^3.0.0",
     "precommit-hook": "^0.3.10",
-    "through": "^2.3.4"
+    "through": "^2.3.4",
+    "jadeify": "2.7.0"
   },
   "homepage": "https://github.com/henrikjoreteg/moonboots",
   "keywords": [
