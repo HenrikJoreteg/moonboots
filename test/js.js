@@ -2,6 +2,8 @@ var Lab = require('lab');
 var Moonboots = require('..');
 var moonboots;
 
+var EXPECTED_JS_HASH = 'app.794c89f5.js';
+var EXPECTED_JS_MIN_HASH = 'app.794c89f5.min.js';
 
 Lab.experiment('js with default options', function () {
     Lab.before(function (done) {
@@ -13,7 +15,7 @@ Lab.experiment('js with default options', function () {
         moonboots.on('ready', done);
     });
     Lab.test('filename', function (done) {
-        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal('app.882ddd9b.min.js');
+        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal(EXPECTED_JS_MIN_HASH);
         done();
     });
     /*
@@ -38,7 +40,7 @@ Lab.experiment('js with uglify options', function () {
         moonboots.on('ready', done);
     });
     Lab.test('filename', function (done) {
-        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal('app.882ddd9b.min.js');
+        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal(EXPECTED_JS_MIN_HASH);
         done();
     });
 });
@@ -54,7 +56,7 @@ Lab.experiment('js with no minify', function () {
         moonboots.on('ready', done);
     });
     Lab.test('filename', function (done) {
-        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal('app.882ddd9b.js');
+        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal(EXPECTED_JS_HASH);
         done();
     });
     /*
@@ -75,7 +77,7 @@ Lab.experiment('js with .js already added', function () {
         moonboots.on('ready', done);
     });
     Lab.test('filename', function (done) {
-        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal('app.882ddd9b.min.js');
+        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal(EXPECTED_JS_MIN_HASH);
         done();
     });
 });
@@ -123,7 +125,7 @@ Lab.experiment('transforms', function () {
         moonboots.on('ready', done);
     });
     Lab.test('ran', function (done) {
-        Lab.expect(transformRan).to.equal(2);
+        Lab.expect(transformRan).to.equal(1);
         done();
     });
 });
