@@ -20,7 +20,7 @@
   ],
   "dependencies": {
     "async": "^0.7.0",
-    "browserify": "^4.2.1",
+    "browserify": "^7.0.2",
     "bundle-metadata": "^1.0.1",
     "cssmin": "^0.4.1",
     "module-deps": "^1.8.0",
@@ -31,7 +31,7 @@
     "lab": "^3.0.0",
     "precommit-hook": "^0.3.10",
     "through": "^2.3.4",
-    "jadeify": "2.7.0"
+    "jadeify": "3.1.0"
   },
   "homepage": "https://github.com/henrikjoreteg/moonboots",
   "keywords": [
