@@ -317,10 +317,7 @@ Moonboots.prototype.browserify = function (done) {
     var self = this;
 
     self.timing('browserify start');
-    // Create two bundles:
-    // bundle is to get the actual js source from a browserify bundle
-    // hashBundle is to create a copy of our other bundle (with the same requires and transforms)
-    // so we can use its resolve fn to get a predictable hash from module-deps
+
     bundle = browserify(self.config.browserify);
 
     // handle module folder that you want to be able to require without relative paths.
@@ -345,18 +342,12 @@ Moonboots.prototype.browserify = function (done) {
     // add main import
     bundle.add(self.config.main);
 
-    async.series([
-        function (next) {
-            // run main bundle function
-            bundle.bundle(function (err, js) {
-                if (self.result.js.source.trim().slice(-1) !== ';') {
-                    js = ';' + js;
-                }
-                self.result.js.source = self.result.js.source + js;
-                next(err);
-            });
+    bundle.bundle(function (err, js) {
+        if (self.result.js.source.trim().slice(-1) !== ';') {
+            js = ';' + js;
         }
-    ], function (err) {
+        self.result.js.source = self.result.js.source + js;
+
         self.timing('browserify finish');
         done(err);
     });
