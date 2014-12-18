@@ -6,6 +6,7 @@ var browserify = require('browserify');
 var UglifyJS = require('uglify-js');
 var cssmin = require('cssmin');
 var path = require('path');
+var watchify = require('watchify');
 
 
 function Moonboots(opts) {
@@ -318,29 +319,43 @@ Moonboots.prototype.browserify = function (done) {
 
     self.timing('browserify start');
 
-    bundle = browserify(self.config.browserify);
+    if (self.config.watchify && self.watchedBundle) {
+        bundle = self.watchedBundle;
+    } else {
+        if (self.config.watchify) {
+            self.config.browserify.cache = {};
+            self.config.browserify.packageCache = {};
+            self.config.browserify.fullPaths = true;
+        }
 
-    // handle module folder that you want to be able to require without relative paths.
-    if (self.config.modulesDir) {
-        modules = fs.readdirSync(self.config.modulesDir);
-        modules.forEach(function (moduleFileName) {
-            if (path.extname(moduleFileName) === '.js') {
-                args = [
-                    path.join(self.config.modulesDir, moduleFileName),
-                    {expose: path.basename(moduleFileName, '.js')}
-                ];
-                bundle.require.apply(bundle, args);
-            }
+        bundle = browserify(self.config.browserify);
+
+        // handle module folder that you want to be able to require without relative paths.
+        if (self.config.modulesDir) {
+            modules = fs.readdirSync(self.config.modulesDir);
+            modules.forEach(function (moduleFileName) {
+                if (path.extname(moduleFileName) === '.js') {
+                    args = [
+                        path.join(self.config.modulesDir, moduleFileName),
+                        {expose: path.basename(moduleFileName, '.js')}
+                    ];
+                    bundle.require.apply(bundle, args);
+                }
+            });
+        }
+
+        // handle browserify transforms if passed
+        self.config.browserify.transforms.forEach(function (tr) {
+            bundle.transform(tr);
         });
+
+        // add main import
+        bundle.add(self.config.main);
     }
 
-    // handle browserify transforms if passed
-    self.config.browserify.transforms.forEach(function (tr) {
-        bundle.transform(tr);
-    });
-
-    // add main import
-    bundle.add(self.config.main);
+    if (self.config.watchify && !self.watchedBundle) {
+        self.watchedBundle = watchify(bundle);
+    }
 
     bundle.bundle(function (err, js) {
         if (self.result.js.source.trim().slice(-1) !== ';') {

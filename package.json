@@ -24,7 +24,8 @@
     "bundle-metadata": "^1.0.1",
     "cssmin": "^0.4.1",
     "module-deps": "^1.8.0",
-    "uglify-js": "^2.4.0"
+    "uglify-js": "^2.4.0",
+    "watchify": "^2.2.1"
   },
   "devDependencies": {
     "backbone": "^1.0.0",
