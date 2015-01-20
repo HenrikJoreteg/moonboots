@@ -35,7 +35,8 @@ function Moonboots(opts) {
         minify: true,
         cache: true,
         developmentMode: false,
-        timingMode: false
+        timingMode: false,
+        watchify: false
     };
 
     // Were we'll store generated source code, etc.
@@ -57,15 +58,18 @@ function Moonboots(opts) {
         this.config.browserify.debug = this.config.sourceMaps;
     }
 
-     // Ensure browserify transforms is set
+    // Ensure browserify transforms is set
     if (typeof this.config.browserify.transforms === 'undefined') {
         this.config.browserify.transforms = [];
     }
-   //developmentMode forces minify to false and never build no matter what
+
+    //developmentMode forces minify to false and never build no matter what
     if (this.config.developmentMode) {
         this.config.minify = false;
         this.config.buildDirectory = undefined;
         this.config.cache = false;
+    } else {
+        this.watchify = false;
     }
 
     //We'll re-add extensions later
