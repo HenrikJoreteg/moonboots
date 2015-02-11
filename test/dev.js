@@ -6,7 +6,6 @@ Lab.experiment('development mode', function () {
     Lab.before(function (done) {
         var options = {
             developmentMode: true,
-            watchify: true,
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app',
             cssFileName: 'app',
@@ -25,7 +24,9 @@ Lab.experiment('development mode', function () {
                         var through = require('through');
                         transformRan = true;
                         return through(
-                            function write() {},
+                            function write(data) {
+                                this.queue(data);
+                            },
                             function _end() {
                                 this.queue(null);
                             }
