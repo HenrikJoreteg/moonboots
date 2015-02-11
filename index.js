@@ -318,7 +318,7 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
 
 
 Moonboots.prototype.browserify = function (done) {
-    var modules, args, bundle;
+    var modules, bundle;
     var self = this;
 
     self.timing('browserify start');
@@ -343,11 +343,9 @@ Moonboots.prototype.browserify = function (done) {
             modules = fs.readdirSync(self.config.modulesDir);
             modules.forEach(function (moduleFileName) {
                 if (path.extname(moduleFileName) === '.js') {
-                    args = [
-                        path.join(self.config.modulesDir, moduleFileName),
-                        {expose: path.basename(moduleFileName, '.js')}
-                    ];
-                    bundle.require.apply(bundle, args);
+                    bundle.require(path.join(self.config.modulesDir, moduleFileName), {
+                        expose: path.basename(moduleFileName, '.js')
+                    });
                 }
             });
         }

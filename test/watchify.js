@@ -12,7 +12,7 @@ Lab.test('watchify', function (done) {
         watchify: true
     });
 
-    var jsSource = function (cb) {
+    var jsSource = function (index, cb) {
         moonboots.jsSource(function (err, js) {
             if (err) return cb(err, null);
             Lab.expect(function evalSource() {
@@ -23,7 +23,7 @@ Lab.test('watchify', function (done) {
     };
 
     moonboots.on('ready', function () {
-        async.series([jsSource, jsSource], function (err, res) {
+        async.timesSeries(2, jsSource, function (err, res) {
             Lab.expect(err).to.equal(void 0);
             Lab.expect(res[0]).to.equal(res[1]);
             done();
