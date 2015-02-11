@@ -334,6 +334,10 @@ Moonboots.prototype.browserify = function (done) {
 
         bundle = browserify(self.config.browserify);
 
+        if (self.config.watchify) {
+            bundle = watchify(bundle);
+        }
+
         // handle module folder that you want to be able to require without relative paths.
         if (self.config.modulesDir) {
             modules = fs.readdirSync(self.config.modulesDir);
@@ -358,7 +362,7 @@ Moonboots.prototype.browserify = function (done) {
     }
 
     if (self.config.watchify && !self.watchedBundle) {
-        self.watchedBundle = watchify(bundle);
+        self.watchedBundle = bundle;
     }
 
     bundle.bundle(function (err, js) {
