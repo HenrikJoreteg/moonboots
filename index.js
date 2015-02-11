@@ -6,8 +6,7 @@ var browserify = require('browserify');
 var UglifyJS = require('uglify-js');
 var cssmin = require('cssmin');
 var path = require('path');
-var mdeps = require('module-deps');
-var meta = require('bundle-metadata');
+var watchify = require('watchify');
 
 
 function Moonboots(opts) {
@@ -36,7 +35,8 @@ function Moonboots(opts) {
         minify: true,
         cache: true,
         developmentMode: false,
-        timingMode: false
+        timingMode: false,
+        watchify: false
     };
 
     // Were we'll store generated source code, etc.
@@ -58,15 +58,18 @@ function Moonboots(opts) {
         this.config.browserify.debug = this.config.sourceMaps;
     }
 
-     // Ensure browserify transforms is set
+    // Ensure browserify transforms is set
     if (typeof this.config.browserify.transforms === 'undefined') {
         this.config.browserify.transforms = [];
     }
-   //developmentMode forces minify to false and never build no matter what
+
+    //developmentMode forces minify to false and never build no matter what
     if (this.config.developmentMode) {
         this.config.minify = false;
         this.config.buildDirectory = undefined;
         this.config.cache = false;
+    } else {
+        this.watchify = false;
     }
 
     //We'll re-add extensions later
@@ -286,11 +289,11 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
             next();
         },
         function (next) {
-            self.browserify(setHash, next);
+            self.browserify(next);
         },
         function (next) {
             if (setHash) {
-                jssha.update(self.result.js.bundleHash);
+                jssha.update(self.result.js.source);
                 self.result.js.hash = jssha.digest('hex').slice(0, 8);
             }
             if (self.config.minify) {
@@ -314,75 +317,58 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
 };
 
 
-Moonboots.prototype.browserify = function (setHash, done) {
-    var modules, args, bundle, hashBundle;
+Moonboots.prototype.browserify = function (done) {
+    var modules, bundle;
     var self = this;
 
     self.timing('browserify start');
-    // Create two bundles:
-    // bundle is to get the actual js source from a browserify bundle
-    // hashBundle is to create a copy of our other bundle (with the same requires and transforms)
-    // so we can use its resolve fn to get a predictable hash from module-deps
-    bundle = browserify(self.config.browserify);
-    if (setHash) {
-        hashBundle = browserify(self.config.browserify);
-    }
 
-    // handle module folder that you want to be able to require without relative paths.
-    if (self.config.modulesDir) {
-        modules = fs.readdirSync(self.config.modulesDir);
-        modules.forEach(function (moduleFileName) {
-            if (path.extname(moduleFileName) === '.js') {
-                args = [
-                    path.join(self.config.modulesDir, moduleFileName),
-                    {expose: path.basename(moduleFileName, '.js')}
-                ];
-                bundle.require.apply(bundle, args);
-                if (setHash) {
-                    hashBundle.require.apply(hashBundle, args);
-                }
-            }
-        });
-    }
-
-    // handle browserify transforms if passed
-    self.config.browserify.transforms.forEach(function (tr) {
-        bundle.transform(tr);
-        if (setHash) {
-            hashBundle.transform(tr);
+    if (self.config.watchify && self.watchedBundle) {
+        bundle = self.watchedBundle;
+    } else {
+        if (self.config.watchify) {
+            self.config.browserify.cache = {};
+            self.config.browserify.packageCache = {};
+            self.config.browserify.fullPaths = true;
         }
-    });
 
-    // add main import
-    bundle.add(self.config.main);
+        bundle = browserify(self.config.browserify);
 
-    async.series([
-        function (next) {
-            // run main bundle function
-            bundle.bundle(self.config.browserify, function (err, js) {
-                if (self.result.js.source.trim().slice(-1) !== ';') {
-                    js = ';' + js;
+        if (self.config.watchify) {
+            bundle = watchify(bundle);
+        }
+
+        // handle module folder that you want to be able to require without relative paths.
+        if (self.config.modulesDir) {
+            modules = fs.readdirSync(self.config.modulesDir);
+            modules.forEach(function (moduleFileName) {
+                if (path.extname(moduleFileName) === '.js') {
+                    bundle.require(path.join(self.config.modulesDir, moduleFileName), {
+                        expose: path.basename(moduleFileName, '.js')
+                    });
                 }
-                self.result.js.source = self.result.js.source + js;
-                next(err);
             });
-        },
-        function (next) {
-            if (!setHash) {
-                return next();
-            }
-            // Get a predictable hash for the bundle
-            var opts = {
-                resolve: hashBundle._resolve.bind(hashBundle),
-                transform: self.config.browserify.transforms
-            };
-            mdeps(self.config.main, opts)
-            .pipe(meta().on('hash', function (hash) {
-                self.result.js.bundleHash = hash;
-                next();
-            }));
-        },
-    ], function (err) {
+        }
+
+        // handle browserify transforms if passed
+        self.config.browserify.transforms.forEach(function (tr) {
+            bundle.transform(tr);
+        });
+
+        // add main import
+        bundle.add(self.config.main);
+    }
+
+    if (self.config.watchify && !self.watchedBundle) {
+        self.watchedBundle = bundle;
+    }
+
+    bundle.bundle(function (err, js) {
+        if (self.result.js.source.trim().slice(-1) !== ';') {
+            js = ';' + js;
+        }
+        self.result.js.source = self.result.js.source + js;
+
         self.timing('browserify finish');
         done(err);
     });

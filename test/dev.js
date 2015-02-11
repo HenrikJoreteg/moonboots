@@ -24,7 +24,9 @@ Lab.experiment('development mode', function () {
                         var through = require('through');
                         transformRan = true;
                         return through(
-                            function write() {},
+                            function write(data) {
+                                this.queue(data);
+                            },
                             function _end() {
                                 this.queue(null);
                             }
@@ -61,6 +63,18 @@ Lab.experiment('development mode', function () {
         moonboots.cssSource(function () {
             Lab.expect(beforeBuildCSSRan).to.equal(true);
             done();
+        });
+    });
+    Lab.test('Rebuild', function (done) {
+        var sourceRan = 0;
+        moonboots.jsSource(function () {
+            sourceRan++;
+            Lab.expect(sourceRan).to.equal(1);
+            moonboots.jsSource(function () {
+                sourceRan++;
+                Lab.expect(sourceRan).to.equal(2);
+                done();
+            });
         });
     });
 });
