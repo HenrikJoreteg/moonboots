@@ -6,7 +6,7 @@ var path = require('path');
 
 Lab.test('watchify', function (done) {
     var moonboots = new Moonboots({
-        main: path.join(__dirname, '/../fixtures', '/app/templates.js'),
+        main: path.join(__dirname, '/../fixtures', '/app/reqModuleFoo.js'),
         modulesDir: path.join(__dirname, '/../fixtures', '/modules2'),
         developmentMode: true,
         watchify: true
