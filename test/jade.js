@@ -1,29 +1,35 @@
 var Lab = require('lab');
 var Moonboots = require('..');
-var moonboots;
+var options = function (transform) {
+    return {
+        main: __dirname + '/../fixtures/app/appJadeImport.js',
+        developmentMode: true,
+        jsFileName: 'app',
+        browserify: {
+            transforms: [transform]
+        }
+    };
+};
 
 
 Lab.experiment('Jade transform', function () {
-    var moonbootsRan = 0;
-    Lab.before(function (done) {
-        var options = {
-            main: __dirname + '/../fixtures/app/appJadeImport.js',
-            jsFileName: 'app',
-            browserify: {
-                transforms: ['jadeify']
-            }
-        };
-        moonboots = new Moonboots(options);
-        moonboots.on('ready', 
-                    function () {
-                        moonbootsRan++;
-                        done();
-                    }
-        );
-    });
     Lab.test('ran', function (done) {
-        Lab.expect(moonbootsRan).to.equal(1);
-        done();
+        var moonboots = new Moonboots(options('jadeify'));
+        moonboots.on('ready', function () {
+            moonboots.jsSource(function (err, js) {
+                Lab.expect(js).to.contain('"<p>All that you require to crash</p>"');
+                done();
+            });
+        });
+    });
+    Lab.test('ran with pretty:true', function (done) {
+        var moonboots = new Moonboots(options(['jadeify', {pretty: true}]));
+        moonboots.on('ready', function () {
+            moonboots.jsSource(function (err, js) {
+                Lab.expect(js).to.contain('"\\n<p>All that you require to crash</p>"');
+                done();
+            });
+        });
     });
 });
 

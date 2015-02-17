@@ -347,9 +347,17 @@ Moonboots.prototype.browserify = function (setHash, done) {
 
     // handle browserify transforms if passed
     self.config.browserify.transforms.forEach(function (tr) {
-        bundle.transform(tr);
+        var transform, opts;
+        if (Array.isArray(tr)) {
+            transform = tr[0];
+            opts = tr[1];
+        } else {
+            transform = tr;
+            opts = {};
+        }
+        bundle.transform(transform, opts);
         if (setHash) {
-            hashBundle.transform(tr);
+            hashBundle.transform(transform, opts);
         }
     });
 
