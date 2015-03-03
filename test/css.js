@@ -1,6 +1,8 @@
 var Lab = require('lab');
 var Moonboots = require('..');
 var moonboots;
+var EXPECTED_CSS_HASH = 'app.38ea6c96.css';
+var EXPECTED_CSS_MIN_HASH = 'app.38ea6c96.min.css';
 
 
 Lab.experiment('css with default options', function () {
@@ -16,7 +18,7 @@ Lab.experiment('css with default options', function () {
         moonboots.on('ready', done);
     });
     Lab.test('filename', function (done) {
-        Lab.expect(moonboots.cssFileName(), 'css filename').to.equal('app.38ea6c96.min.css');
+        Lab.expect(moonboots.cssFileName(), 'css filename').to.equal(EXPECTED_CSS_MIN_HASH);
         done();
     });
     Lab.test('content', function (done) {
@@ -41,7 +43,7 @@ Lab.experiment('css with no minify', function () {
         moonboots.on('ready', done);
     });
     Lab.test('filename', function (done) {
-        Lab.expect(moonboots.cssFileName(), 'css filename').to.equal('app.38ea6c96.css');
+        Lab.expect(moonboots.cssFileName(), 'css filename').to.equal(EXPECTED_CSS_HASH);
         done();
     });
     Lab.test('content', function (done) {
@@ -65,7 +67,7 @@ Lab.experiment('css with .css already added', function () {
         moonboots.on('ready', done);
     });
     Lab.test('filename', function (done) {
-        Lab.expect(moonboots.cssFileName(), 'css filename').to.equal('app.38ea6c96.min.css');
+        Lab.expect(moonboots.cssFileName(), 'css filename').to.equal(EXPECTED_CSS_MIN_HASH);
         done();
     });
 });

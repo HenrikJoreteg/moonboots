@@ -24,7 +24,9 @@ Lab.experiment('development mode', function () {
                         var through = require('through');
                         transformRan = true;
                         return through(
-                            function write() {},
+                            function write(data) {
+                                this.queue(data);
+                            },
                             function _end() {
                                 this.queue(null);
                             }

@@ -6,8 +6,6 @@ var browserify = require('browserify');
 var UglifyJS = require('uglify-js');
 var cssmin = require('cssmin');
 var path = require('path');
-var mdeps = require('module-deps');
-var meta = require('bundle-metadata');
 
 
 function Moonboots(opts) {
@@ -286,11 +284,11 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
             next();
         },
         function (next) {
-            self.browserify(setHash, next);
+            self.browserify(next);
         },
         function (next) {
             if (setHash) {
-                jssha.update(self.result.js.bundleHash);
+                jssha.update(self.result.js.source);
                 self.result.js.hash = jssha.digest('hex').slice(0, 8);
             }
             if (self.config.minify) {
@@ -314,19 +312,13 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
 };
 
 
-Moonboots.prototype.browserify = function (setHash, done) {
-    var modules, args, bundle, hashBundle;
+Moonboots.prototype.browserify = function (done) {
+    var modules, args, bundle;
     var self = this;
 
     self.timing('browserify start');
-    // Create two bundles:
-    // bundle is to get the actual js source from a browserify bundle
-    // hashBundle is to create a copy of our other bundle (with the same requires and transforms)
-    // so we can use its resolve fn to get a predictable hash from module-deps
+
     bundle = browserify(self.config.browserify);
-    if (setHash) {
-        hashBundle = browserify(self.config.browserify);
-    }
 
     // handle module folder that you want to be able to require without relative paths.
     if (self.config.modulesDir) {
@@ -338,9 +330,6 @@ Moonboots.prototype.browserify = function (setHash, done) {
                     {expose: path.basename(moduleFileName, '.js')}
                 ];
                 bundle.require.apply(bundle, args);
-                if (setHash) {
-                    hashBundle.require.apply(hashBundle, args);
-                }
             }
         });
     }
@@ -356,41 +345,17 @@ Moonboots.prototype.browserify = function (setHash, done) {
             opts = {};
         }
         bundle.transform(transform, opts);
-        if (setHash) {
-            hashBundle.transform(transform, opts);
-        }
     });
 
     // add main import
     bundle.add(self.config.main);
 
-    async.series([
-        function (next) {
-            // run main bundle function
-            bundle.bundle(self.config.browserify, function (err, js) {
-                if (self.result.js.source.trim().slice(-1) !== ';') {
-                    js = ';' + js;
-                }
-                self.result.js.source = self.result.js.source + js;
-                next(err);
-            });
-        },
-        function (next) {
-            if (!setHash) {
-                return next();
-            }
-            // Get a predictable hash for the bundle
-            var opts = {
-                resolve: hashBundle._resolve.bind(hashBundle),
-                transform: self.config.browserify.transforms
-            };
-            mdeps(self.config.main, opts)
-            .pipe(meta().on('hash', function (hash) {
-                self.result.js.bundleHash = hash;
-                next();
-            }));
-        },
-    ], function (err) {
+    bundle.bundle(function (err, js) {
+        if (self.result.js.source.trim().slice(-1) !== ';') {
+            js = ';' + js;
+        }
+        self.result.js.source = self.result.js.source + js;
+
         self.timing('browserify finish');
         done(err);
     });
