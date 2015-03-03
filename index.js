@@ -56,11 +56,19 @@ function Moonboots(opts) {
         this.config.browserify.debug = this.config.sourceMaps;
     }
 
-     // Ensure browserify transforms is set
-    if (typeof this.config.browserify.transforms === 'undefined') {
-        this.config.browserify.transforms = [];
+    // Replace transforms with transform in the browserify config since
+    // that is how browserify expects them
+    if (this.config.browserify.transforms && !this.config.browserify.transform) {
+        this.config.browserify.transform = this.config.browserify.transforms;
+        delete this.config.browserify.transforms;
     }
-   //developmentMode forces minify to false and never build no matter what
+
+    // Ensure browserify transforms is set
+    if (typeof this.config.browserify.transform === 'undefined') {
+        this.config.browserify.transform = [];
+    }
+
+    // developmentMode forces minify to false and never build no matter what
     if (this.config.developmentMode) {
         this.config.minify = false;
         this.config.buildDirectory = undefined;
@@ -333,19 +341,6 @@ Moonboots.prototype.browserify = function (done) {
             }
         });
     }
-
-    // handle browserify transforms if passed
-    self.config.browserify.transforms.forEach(function (tr) {
-        var transform, opts;
-        if (Array.isArray(tr)) {
-            transform = tr[0];
-            opts = tr[1];
-        } else {
-            transform = tr;
-            opts = {};
-        }
-        bundle.transform(transform, opts);
-    });
 
     // add main import
     bundle.add(self.config.main);
