@@ -79,7 +79,7 @@ Available options that can be passed to Moonboots:
 - `minify` (optional, boolean, default: true) - an option for whether to minify JS and CSS.
 - `cache` (optional, boolean, default: true) - an option for whether or not to recalculate the bundles each time
 - `buildDirectory` (optional, string, default: nothing) - directory path in which to write the js and css bundles after building and optionally minifying.  If this is set, moonboots will first look in this folder for files matching the jsFileName and cssFileName parameters and use them if present. Those files will be trusted implicitly and no hashing or building will be done.
-- `developmentMode` (optional, boolean, default: false) - If this is true, forces cache to false, minify to true, and disables buildDirectory
+- `developmentMode` (optional, boolean, default: false) - If this is true, forces cache to false, minify to false, and disables buildDirectory
 - `timingMode` (optional, boolean, default: false) - If set to true, moonboots will emit log events w/ a 'timing' flag at various stages of building to assist with performance issues
 
 ## About Source Maps
