@@ -19,12 +19,12 @@
     }
   ],
   "dependencies": {
-    "async": "^0.7.0",
-    "browserify": "^9.0.3",
+    "async": "^1.5.2",
+    "browserify": "^13.0.0",
     "bundle-metadata": "^1.0.1",
-    "cssmin": "^0.4.1",
-    "module-deps": "^1.8.0",
-    "uglify-js": "^2.4.0"
+    "cssmin": "^0.4.3",
+    "module-deps": "^4.0.5",
+    "uglify-js": "^2.6.2"
   },
   "devDependencies": {
     "backbone": "^1.0.0",
