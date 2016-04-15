@@ -28,25 +28,34 @@
   },
   "devDependencies": {
     "backbone": "^1.0.0",
+    "jade": "^1.11.0",
     "jadeify": "^4.1.0",
+    "jquery": "^2.2.3",
     "lab": "^3.0.0",
-    "precommit-hook": "^0.3.10",
+    "precommit-hook": "^3.0.0",
     "through": "^2.3.4"
   },
   "homepage": "https://github.com/henrikjoreteg/moonboots",
   "keywords": [
-    "commonjs",
-    "clientside",
     "browserify",
+    "clientside",
+    "commonjs",
     "singlepage"
   ],
-  "scripts": {
-    "test": "make test"
-  },
   "license": "MIT",
   "main": "index.js",
+  "pre-commit": [
+    "lint",
+    "validate",
+    "test"
+  ],
   "repository": {
     "type": "git",
     "url": "git@github.com:HenrikJoreteg/moonboots.git"
+  },
+  "scripts": {
+    "lint": "jshint .",
+    "test": "make test",
+    "validate": "npm ls"
   }
 }
