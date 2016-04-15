@@ -1,9 +1,11 @@
 var Lab = require('lab');
+var Code = require('code');
+var lab = exports.lab = Lab.script();
 var Moonboots = require('..');
 var moonboots;
 
-Lab.experiment('sourceMaps option sets browserify.debug', function () {
-    Lab.before(function (done) {
+lab.experiment('sourceMaps option sets browserify.debug', function () {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app',
@@ -13,14 +15,14 @@ Lab.experiment('sourceMaps option sets browserify.debug', function () {
         moonboots.on('ready', done);
     });
 
-    Lab.test('filename', function (done) {
-        Lab.expect(moonboots.config.browserify.debug).to.equal(true);
+    lab.test('filename', function (done) {
+        Code.expect(moonboots.config.browserify.debug).to.equal(true);
         done();
     });
 });
 
-Lab.experiment('default is false', function () {
-    Lab.before(function (done) {
+lab.experiment('default is false', function () {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app'
@@ -29,14 +31,14 @@ Lab.experiment('default is false', function () {
         moonboots.on('ready', done);
     });
 
-    Lab.test('filename', function (done) {
-        Lab.expect(moonboots.config.browserify.debug).to.equal(false);
+    lab.test('filename', function (done) {
+        Code.expect(moonboots.config.browserify.debug).to.equal(false);
         done();
     });
 });
 
-Lab.experiment('sourceMaps option can be overwritten by browserify.debug', function () {
-    Lab.before(function (done) {
+lab.experiment('sourceMaps option can be overwritten by browserify.debug', function () {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app',
@@ -49,8 +51,8 @@ Lab.experiment('sourceMaps option can be overwritten by browserify.debug', funct
         moonboots.on('ready', done);
     });
 
-    Lab.test('filename', function (done) {
-        Lab.expect(moonboots.config.browserify.debug).to.equal(false);
+    lab.test('filename', function (done) {
+        Code.expect(moonboots.config.browserify.debug).to.equal(false);
         done();
     });
 });

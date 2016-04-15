@@ -1,4 +1,6 @@
 var Lab = require('lab');
+var Code = require('code');
+var lab = exports.lab = Lab.script();
 var async = require('async');
 var Moonboots = require('..');
 
@@ -14,7 +16,7 @@ function arrEqual(arr) {
 }
 
 
-Lab.experiment('Hash is the same', function () {
+lab.experiment('Hash is the same', function () {
     function setup(done) {
         var options = {
             main: __dirname + '/../fixtures/app/appImports.js',
@@ -27,7 +29,7 @@ Lab.experiment('Hash is the same', function () {
         });
     }
 
-    Lab.test('50 times', function (done) {
+    lab.test('50 times', function (done) {
         async.timesSeries(50, function (index, next) {
             setup(function (moonboots) {
                 var filename = moonboots.jsFileName();
@@ -42,8 +44,8 @@ Lab.experiment('Hash is the same', function () {
             var js = results.map(function (r) {
                 return r[1];
             });
-            Lab.expect(arrEqual(filenames)).to.equal(true);
-            Lab.expect(arrEqual(js)).to.equal(true);
+            Code.expect(arrEqual(filenames)).to.equal(true);
+            Code.expect(arrEqual(js)).to.equal(true);
             done();
         });
     });

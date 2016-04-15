@@ -1,9 +1,11 @@
 var Lab = require('lab');
+var Code = require('code');
+var lab = exports.lab = Lab.script();
 var Moonboots = require('..');
 var moonboots, beforeBuildJSRan, beforeBuildCSSRan, transformRan;
 
-Lab.experiment('development mode', function () {
-    Lab.before(function (done) {
+lab.experiment('development mode', function () {
+    lab.before(function (done) {
         var options = {
             developmentMode: true,
             main: __dirname + '/../fixtures/app/app.js',
@@ -41,27 +43,27 @@ Lab.experiment('development mode', function () {
         moonboots = new Moonboots(options);
         moonboots.on('ready', done);
     });
-    Lab.test('htmlContext', function (done) {
+    lab.test('htmlContext', function (done) {
         var context = moonboots.htmlContext();
-        Lab.expect(context).to.have.keys('jsFileName', 'cssFileName');
-        Lab.expect(context.jsFileName).to.equal('app.nonCached.js');
-        Lab.expect(context.cssFileName).to.equal('app.nonCached.css');
+        Code.expect(context).to.include(['jsFileName', 'cssFileName']);
+        Code.expect(context.jsFileName).to.equal('app.nonCached.js');
+        Code.expect(context.cssFileName).to.equal('app.nonCached.css');
         done();
     });
-    Lab.test('js rebuilds every request', function (done) {
+    lab.test('js rebuilds every request', function (done) {
         beforeBuildJSRan = false;
         moonboots.jsSource(function (err, js) {
-            Lab.expect(beforeBuildJSRan).to.equal(true);
-            Lab.expect(transformRan).to.equal(true);
-            Lab.expect(js, 'js source').to.contain('"foo"');
+            Code.expect(beforeBuildJSRan).to.equal(true);
+            Code.expect(transformRan).to.equal(true);
+            Code.expect(js, 'js source').to.contain('"foo"');
             done();
         });
     });
-    Lab.test('css rebuilds every request', function (done) {
+    lab.test('css rebuilds every request', function (done) {
         beforeBuildCSSRan = false;
         transformRan = false;
         moonboots.cssSource(function () {
-            Lab.expect(beforeBuildCSSRan).to.equal(true);
+            Code.expect(beforeBuildCSSRan).to.equal(true);
             done();
         });
     });

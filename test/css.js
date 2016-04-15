@@ -1,12 +1,14 @@
 var Lab = require('lab');
+var Code = require('code');
+var lab = exports.lab = Lab.script();
 var Moonboots = require('..');
 var moonboots;
 var EXPECTED_CSS_HASH = 'app.38ea6c96.css';
 var EXPECTED_CSS_MIN_HASH = 'app.38ea6c96.min.css';
 
 
-Lab.experiment('css with default options', function () {
-    Lab.before(function (done) {
+lab.experiment('css with default options', function () {
+    lab.before(function (done) {
         var default_options = {
             main: __dirname + '/../fixtures/app/app.js',
             cssFileName: 'app',
@@ -17,20 +19,20 @@ Lab.experiment('css with default options', function () {
         moonboots = new Moonboots(default_options);
         moonboots.on('ready', done);
     });
-    Lab.test('filename', function (done) {
-        Lab.expect(moonboots.cssFileName(), 'css filename').to.equal(EXPECTED_CSS_MIN_HASH);
+    lab.test('filename', function (done) {
+        Code.expect(moonboots.cssFileName(), 'css filename').to.equal(EXPECTED_CSS_MIN_HASH);
         done();
     });
-    Lab.test('content', function (done) {
+    lab.test('content', function (done) {
         moonboots.cssSource(function (err, css) {
-            Lab.expect(css, 'css source').to.equal('body{background:#ccc}');
+            Code.expect(css, 'css source').to.equal('body{background:#ccc}');
         });
         done();
     });
 });
 
-Lab.experiment('css with no minify', function () {
-    Lab.before(function (done) {
+lab.experiment('css with no minify', function () {
+    lab.before(function (done) {
         var no_minify = {
             main: __dirname + '/../fixtures/app/app.js',
             cssFileName: 'app',
@@ -42,20 +44,20 @@ Lab.experiment('css with no minify', function () {
         moonboots = new Moonboots(no_minify);
         moonboots.on('ready', done);
     });
-    Lab.test('filename', function (done) {
-        Lab.expect(moonboots.cssFileName(), 'css filename').to.equal(EXPECTED_CSS_HASH);
+    lab.test('filename', function (done) {
+        Code.expect(moonboots.cssFileName(), 'css filename').to.equal(EXPECTED_CSS_HASH);
         done();
     });
-    Lab.test('content', function (done) {
+    lab.test('content', function (done) {
         moonboots.cssSource(function (err, css) {
-            Lab.expect(css, 'css source').to.equal('body {background: #ccc;}\n');
+            Code.expect(css, 'css source').to.equal('body {background: #ccc;}\n');
         });
         done();
     });
 });
 
-Lab.experiment('css with .css already added', function () {
-    Lab.before(function (done) {
+lab.experiment('css with .css already added', function () {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             cssFileName: 'app.css',
@@ -66,16 +68,16 @@ Lab.experiment('css with .css already added', function () {
         moonboots = new Moonboots(options);
         moonboots.on('ready', done);
     });
-    Lab.test('filename', function (done) {
-        Lab.expect(moonboots.cssFileName(), 'css filename').to.equal(EXPECTED_CSS_MIN_HASH);
+    lab.test('filename', function (done) {
+        Code.expect(moonboots.cssFileName(), 'css filename').to.equal(EXPECTED_CSS_MIN_HASH);
         done();
     });
 });
 
 
-Lab.experiment('async beforeBuildCSS', function () {
+lab.experiment('async beforeBuildCSS', function () {
     var beforeRan = false;
-    Lab.before(function (done) {
+    lab.before(function (done) {
         var no_minify = {
             main: __dirname + '/../fixtures/app/app.js',
             cssFileName: 'app',
@@ -91,15 +93,15 @@ Lab.experiment('async beforeBuildCSS', function () {
         moonboots = new Moonboots(no_minify);
         moonboots.on('ready', done);
     });
-    Lab.test('ran', function (done) {
-        Lab.expect(beforeRan).to.equal(true);
+    lab.test('ran', function (done) {
+        Code.expect(beforeRan).to.equal(true);
         done();
     });
 });
 
-Lab.experiment('sync beforeBuildCSS', function () {
+lab.experiment('sync beforeBuildCSS', function () {
     var beforeRan = false;
-    Lab.before(function (done) {
+    lab.before(function (done) {
         var no_minify = {
             main: __dirname + '/../fixtures/app/app.js',
             cssFileName: 'app',
@@ -114,14 +116,14 @@ Lab.experiment('sync beforeBuildCSS', function () {
         moonboots = new Moonboots(no_minify);
         moonboots.on('ready', done);
     });
-    Lab.test('ran', function (done) {
-        Lab.expect(beforeRan).to.equal(true);
+    lab.test('ran', function (done) {
+        Code.expect(beforeRan).to.equal(true);
         done();
     });
 });
 
-Lab.experiment('bad css', function () {
-    Lab.before(function (done) {
+lab.experiment('bad css', function () {
+    lab.before(function (done) {
         var bad_css = {
             main: __dirname + '/../fixtures/app/app.js',
             cssFileName: 'app',
@@ -135,9 +137,9 @@ Lab.experiment('bad css', function () {
         moonboots = new Moonboots(bad_css);
         moonboots.on('ready', done);
     });
-    Lab.test('empty css, no crashing', function (done) {
+    lab.test('empty css, no crashing', function (done) {
         moonboots.cssSource(function (err, css) {
-            Lab.expect(css, 'css source').to.equal(undefined);
+            Code.expect(css, 'css source').to.equal(undefined);
             done();
         });
     });

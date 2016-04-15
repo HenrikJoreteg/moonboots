@@ -1,10 +1,12 @@
 var Lab = require('lab');
+var Code = require('code');
+var lab = exports.lab = Lab.script();
 var Moonboots = require('..');
 var moonboots;
 var timingEvents = 0;
 
-Lab.experiment('timingMode', function () {
-    Lab.before(function (done) {
+lab.experiment('timingMode', function () {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             timingMode: true
@@ -17,8 +19,8 @@ Lab.experiment('timingMode', function () {
         });
         moonboots.on('ready', done);
     });
-    Lab.test('emits timing events', function (done) {
-        Lab.expect(timingEvents).to.be.above(0);
+    lab.test('emits timing events', function (done) {
+        Code.expect(timingEvents).to.be.above(0);
         done();
     });
 });

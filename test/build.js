@@ -1,4 +1,6 @@
 var Lab = require('lab');
+var Code = require('code');
+var lab = exports.lab = Lab.script();
 var async = require('async');
 var os = require('os');
 var fs = require('fs');
@@ -7,10 +9,10 @@ var crypto = require('crypto');
 var Moonboots = require('..');
 var moonboots;
 
-Lab.experiment('files get read from buildDirectory', function () {
+lab.experiment('files get read from buildDirectory', function () {
     var tmpHash = crypto.randomBytes(16).toString('hex');
     var buildDir = path.join(os.tmpdir(), tmpHash);
-    Lab.before(function (done) {
+    lab.before(function (done) {
         async.series([
             function (next) {
                 fs.mkdir(buildDir, next);
@@ -38,7 +40,7 @@ Lab.experiment('files get read from buildDirectory', function () {
             moonboots.on('ready', done);
         });
     });
-    Lab.after(function (done) {
+    lab.after(function (done) {
         async.series([
             function (next) {
                 fs.unlink(path.join(buildDir, 'app.deadbeef.min.js'), next);
@@ -57,31 +59,31 @@ Lab.experiment('files get read from buildDirectory', function () {
             done();
         });
     });
-    Lab.test('htmlContext', function (done) {
+    lab.test('htmlContext', function (done) {
         var context = moonboots.htmlContext();
-        Lab.expect(context).to.have.keys('jsFileName', 'cssFileName');
-        Lab.expect(context.jsFileName).to.equal('app.deadbeef.min.js');
-        Lab.expect(context.cssFileName).to.equal('app.deadbeef.min.css');
+        Code.expect(context).to.include(['jsFileName', 'cssFileName']);
+        Code.expect(context.jsFileName).to.equal('app.deadbeef.min.js');
+        Code.expect(context.cssFileName).to.equal('app.deadbeef.min.css');
         done();
     });
-    Lab.test('js', function (done) {
+    lab.test('js', function (done) {
         moonboots.jsSource(function (err, js) {
-            Lab.expect(js).to.equal('javascript!' + tmpHash);
+            Code.expect(js).to.equal('javascript!' + tmpHash);
             done();
         });
     });
-    Lab.test('css', function (done) {
+    lab.test('css', function (done) {
         moonboots.cssSource(function (err, css) {
-            Lab.expect(css).to.equal('cascading stylesheets!' + tmpHash);
+            Code.expect(css).to.equal('cascading stylesheets!' + tmpHash);
             done();
         });
     });
 });
 
-Lab.experiment('Files get written to build directory', function () {
+lab.experiment('Files get written to build directory', function () {
     var tmpHash = crypto.randomBytes(16).toString('hex');
     var buildDir = path.join(os.tmpdir(), tmpHash);
-    Lab.before(function (done) {
+    lab.before(function (done) {
         fs.mkdir(buildDir, function () {
             var options = {
                 main: __dirname + '/../fixtures/app/app.js',
@@ -100,7 +102,7 @@ Lab.experiment('Files get written to build directory', function () {
             moonboots.on('ready', done);
         });
     });
-    Lab.after(function (done) {
+    lab.after(function (done) {
         async.series([
             function (next) {
                 fs.unlink(path.join(buildDir, 'app.3adb4850.min.js'), next);
@@ -116,23 +118,23 @@ Lab.experiment('Files get written to build directory', function () {
             done();
         });
     });
-    Lab.test('js file was written', function (done) {
+    lab.test('js file was written', function (done) {
         var jsFileName = moonboots.jsFileName();
         var filePath = path.join(buildDir, jsFileName);
-        Lab.expect(jsFileName).to.equal('app.3adb4850.min.js');
+        Code.expect(jsFileName).to.equal('app.3adb4850.min.js');
         fs.readFile(filePath, 'utf8', function (err) {
-            Lab.expect(err).to.not.be.ok;
+            Code.expect(err).to.not.be.ok;
             // Test that iife-no-semicolon.js doesn't introduce a parsing bug
             // via a (function () {…})\n(function () {…}) sequence
-            Lab.expect(function () { require(filePath); }).to.not.throw();
+            Code.expect(function () { require(filePath); }).to.not.throw();
             done();
         });
     });
-    Lab.test('css file was written', function (done) {
+    lab.test('css file was written', function (done) {
         var cssFileName = moonboots.cssFileName();
-        Lab.expect(cssFileName).to.equal('app.38ea6c96.min.css');
+        Code.expect(cssFileName).to.equal('app.38ea6c96.min.css');
         fs.readFile(path.join(buildDir, cssFileName), 'utf8', function (err) {
-            Lab.expect(err).to.not.be.ok;
+            Code.expect(err).to.not.be.ok;
             done();
         });
     });

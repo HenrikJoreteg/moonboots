@@ -1,12 +1,14 @@
 var Lab = require('lab');
+var Code = require('code');
+var lab = exports.lab = Lab.script();
 var Moonboots = require('..');
 var moonboots;
 
 var EXPECTED_JS_HASH = 'app.794c89f5.js';
 var EXPECTED_JS_MIN_HASH = 'app.794c89f5.min.js';
 
-Lab.experiment('js with default options', function () {
-    Lab.before(function (done) {
+lab.experiment('js with default options', function () {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app'
@@ -14,20 +16,20 @@ Lab.experiment('js with default options', function () {
         moonboots = new Moonboots(options);
         moonboots.on('ready', done);
     });
-    Lab.test('filename', function (done) {
-        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal(EXPECTED_JS_MIN_HASH);
+    lab.test('filename', function (done) {
+        Code.expect(moonboots.jsFileName(), 'js filename').to.equal(EXPECTED_JS_MIN_HASH);
         done();
     });
     /*
-    Lab.test('content', function (done) {
-        Lab.expect(moonboots.jsSource(), 'js source').to.equal('how do we even test this?');
+    lab.test('content', function (done) {
+        Code.expect(moonboots.jsSource(), 'js source').to.equal('how do we even test this?');
         done();
     });
    */
 });
 
-Lab.experiment('js with uglify options', function () {
-    Lab.before(function (done) {
+lab.experiment('js with uglify options', function () {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app',
@@ -39,14 +41,14 @@ Lab.experiment('js with uglify options', function () {
         moonboots = new Moonboots(options);
         moonboots.on('ready', done);
     });
-    Lab.test('filename', function (done) {
-        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal(EXPECTED_JS_MIN_HASH);
+    lab.test('filename', function (done) {
+        Code.expect(moonboots.jsFileName(), 'js filename').to.equal(EXPECTED_JS_MIN_HASH);
         done();
     });
 });
 
-Lab.experiment('js with no minify', function () {
-    Lab.before(function (done) {
+lab.experiment('js with no minify', function () {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app',
@@ -55,20 +57,20 @@ Lab.experiment('js with no minify', function () {
         moonboots = new Moonboots(options);
         moonboots.on('ready', done);
     });
-    Lab.test('filename', function (done) {
-        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal(EXPECTED_JS_HASH);
+    lab.test('filename', function (done) {
+        Code.expect(moonboots.jsFileName(), 'js filename').to.equal(EXPECTED_JS_HASH);
         done();
     });
     /*
-    Lab.test('content', function (done) {
-        Lab.expect(moonboots.jsSource(), 'js source').to.equal('how do we even test this?');
+    lab.test('content', function (done) {
+        Code.expect(moonboots.jsSource(), 'js source').to.equal('how do we even test this?');
         done();
     });
    */
 });
 
-Lab.experiment('js with .js already added', function () {
-    Lab.before(function (done) {
+lab.experiment('js with .js already added', function () {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app.js'
@@ -76,14 +78,14 @@ Lab.experiment('js with .js already added', function () {
         moonboots = new Moonboots(options);
         moonboots.on('ready', done);
     });
-    Lab.test('filename', function (done) {
-        Lab.expect(moonboots.jsFileName(), 'js filename').to.equal(EXPECTED_JS_MIN_HASH);
+    lab.test('filename', function (done) {
+        Code.expect(moonboots.jsFileName(), 'js filename').to.equal(EXPECTED_JS_MIN_HASH);
         done();
     });
 });
 
-Lab.experiment('modulesDir', function () {
-    Lab.before(function (done) {
+lab.experiment('modulesDir', function () {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app',
@@ -92,17 +94,17 @@ Lab.experiment('modulesDir', function () {
         moonboots = new Moonboots(options);
         moonboots.on('ready', done);
     });
-    Lab.test('module foo is in source', function (done) {
+    lab.test('module foo is in source', function (done) {
         moonboots.jsSource(function (err, js) {
-            Lab.expect(js, 'js source').to.contain('"foo"');
+            Code.expect(js, 'js source').to.contain('"foo"');
             done();
         });
     });
 });
 
-Lab.experiment('transforms', function () {
+lab.experiment('transforms', function () {
     var transformRan = 0;
-    Lab.before(function (done) {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app',
@@ -124,16 +126,16 @@ Lab.experiment('transforms', function () {
         moonboots = new Moonboots(options);
         moonboots.on('ready', done);
     });
-    Lab.test('ran', function (done) {
-        Lab.expect(transformRan).to.equal(1);
+    lab.test('ran', function (done) {
+        Code.expect(transformRan).to.equal(1);
         done();
     });
 });
 
 
-Lab.experiment('transforms with transform option', function () {
+lab.experiment('transforms with transform option', function () {
     var transformRan = 0;
-    Lab.before(function (done) {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app',
@@ -155,15 +157,15 @@ Lab.experiment('transforms with transform option', function () {
         moonboots = new Moonboots(options);
         moonboots.on('ready', done);
     });
-    Lab.test('ran', function (done) {
-        Lab.expect(transformRan).to.equal(1);
+    lab.test('ran', function (done) {
+        Code.expect(transformRan).to.equal(1);
         done();
     });
 });
 
-Lab.experiment('sync beforeBuildJS', function () {
+lab.experiment('sync beforeBuildJS', function () {
     var beforeRan = false;
-    Lab.before(function (done) {
+    lab.before(function (done) {
         var options = {
             main: __dirname + '/../fixtures/app/app.js',
             jsFileName: 'app',
@@ -175,8 +177,8 @@ Lab.experiment('sync beforeBuildJS', function () {
         moonboots = new Moonboots(options);
         moonboots.on('ready', done);
     });
-    Lab.test('ran', function (done) {
-        Lab.expect(beforeRan).to.equal(true);
+    lab.test('ran', function (done) {
+        Code.expect(beforeRan).to.equal(true);
         done();
     });
 });

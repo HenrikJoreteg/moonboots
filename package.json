@@ -28,10 +28,11 @@
   },
   "devDependencies": {
     "backbone": "^1.0.0",
+    "code": "^2.2.0",
     "jade": "^1.11.0",
     "jadeify": "^4.1.0",
     "jquery": "^2.2.3",
-    "lab": "^3.0.0",
+    "lab": "^10.3.1",
     "precommit-hook": "^3.0.0",
     "through": "^2.3.4"
   },
