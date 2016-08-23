@@ -287,7 +287,6 @@ Moonboots.prototype.bundleJS = function (setHash, done) {
             //Start w/ external libraries
             self.timing('build libraries start');
             self.result.js.source = concatFiles(self.config.libraries);
-            jssha.update(self.result.js.source);
             self.timing('build libraries finish');
             next();
         },

@@ -105,7 +105,7 @@ lab.experiment('Files get written to build directory', function () {
     lab.after(function (done) {
         async.series([
             function (next) {
-                fs.unlink(path.join(buildDir, 'app.3adb4850.min.js'), next);
+                fs.unlink(path.join(buildDir, 'app.9b1ed6d6.min.js'), next);
             },
             function (next) {
                 fs.unlink(path.join(buildDir, 'app.38ea6c96.min.css'), next);
@@ -121,7 +121,7 @@ lab.experiment('Files get written to build directory', function () {
     lab.test('js file was written', function (done) {
         var jsFileName = moonboots.jsFileName();
         var filePath = path.join(buildDir, jsFileName);
-        Code.expect(jsFileName).to.equal('app.3adb4850.min.js');
+        Code.expect(jsFileName).to.equal('app.9b1ed6d6.min.js');
         fs.readFile(filePath, 'utf8', function (err) {
             Code.expect(err).to.not.be.ok;
             // Test that iife-no-semicolon.js doesn't introduce a parsing bug
